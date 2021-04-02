@@ -31,6 +31,8 @@ private:
   // Linear solver parameters
   int _maxIterations;
   double _tolerance;
+  bool _isSaveResidual;
+  std::string _resFile;
   
   // Diffusion coefficient
   double _diffCoeff;
@@ -71,6 +73,8 @@ public:
   double getDy() const {return _dy;};
   int getMaxIterations() const {return _maxIterations;};
   double getTolerance() const {return _tolerance;};
+  bool isSaveResidual() const {return _isSaveResidual;}
+  std::string getResFile() const {return _resFile;};
   double getDiffCoeff() const {return _diffCoeff;};
   int getSaveFrequency() const {return _saveFrequency;};
 

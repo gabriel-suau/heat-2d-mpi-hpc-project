@@ -99,7 +99,7 @@ DVector Laplacian::solveConjGrad(const DVector& b, const DVector& x0, double tol
   // Logs
   if ((k == maxIterations) && (beta > tolerance))
     {
-      std::cout << termcolor::yellow << "The GC method did not converge as desired. Residual L2 norm = " << beta << " (" << maxIterations << " iterations)" << std::endl;
+      std::cout << termcolor::yellow << "The GC method did not converge. Residual L2 norm = " << beta << " (" << maxIterations << " iterations)" << std::endl;
       std::cout << termcolor::reset;
     }
   return x;

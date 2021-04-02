@@ -60,25 +60,32 @@ ImplicitEuler
 InitialTime
 0.
 FinalTime
-2.0
+0.5
 TimeStep
-0.01
+0.005
 CFL
 0.5
 
 
-##########################################################
-###             Paramètres Gradient Conjugué           ###
-##########################################################
+#############################################################################
+###             Paramètres Solveur Linéaire (Gradient Conjugué)           ###
+#############################################################################
 
 # Nombre d'itérations max
 MaxIterations
-30
+150
 
 # Tolerance pour le test d'arrêt
 Tolerance
 1e-6
 
+# Sauvegarde de la norme des résidus dans un fichier
+IsSaveResidual
+1
+
+# File in which the residual norm is to be written
+ResidualFile
+norme_residus.dat
 
 ###############################################################
 ###             Sauvegarde/Stockage des résultats           ###

@@ -120,6 +120,14 @@ void DataFile::readDataFile()
         {
           dataFile >> _tolerance;
         }
+      if (proper_line.find("IsSaveResidual") != std::string::npos)
+        {
+          dataFile >> _isSaveResidual;
+        }
+      if (proper_line.find("ResidualFile") != std::string::npos)
+        {
+          dataFile >> _resFile;
+        }
       if (proper_line.find("ResultsDir") != std::string::npos)
         {
           dataFile >> _resultsDir;
@@ -191,7 +199,12 @@ void DataFile::printData() const
     {
       std::cout << "Linear solver         : Conjugate Gradient" << std::endl;
       std::cout << "    |Max Iterations   = " << _maxIterations << std::endl;
-      std::cout << "    |Tolerance        = " << _tolerance << std::endl; 
+      std::cout << "    |Tolerance        = " << _tolerance << std::endl;
+      std::cout << "    |Save residual ?  = " << _isSaveResidual << std::endl;
+      if (_isSaveResidual)
+        {
+          std::cout << "    |Residual File    = " << _resFile << std::endl; 
+        }
     }
   std::cout << "Results directory     = " << _resultsDir << std::endl;
   std::cout << "Save Frequency        = " << _saveFrequency << std::endl;

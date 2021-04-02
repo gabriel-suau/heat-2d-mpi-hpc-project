@@ -12,7 +12,7 @@ CC        = mpicxx
 CXX_FLAGS = -std=c++11
 
 # Flags d'optimisation et de debug
-OPTIM_FLAGS = -O2 -DNDEBUG
+OPTIM_FLAGS = -O3 -DNDEBUG
 DEBUG_FLAGS = -O0 -g -DDEBUG -pedantic -fbounds-check -fdump-core -pg
 
 # Nom de l'exécutable
