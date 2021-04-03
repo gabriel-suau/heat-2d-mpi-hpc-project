@@ -75,7 +75,7 @@ DVector Laplacian::matVecProd(const DVector& x)
 }
 
 
-DVector Laplacian::solveConjGrad(const DVector& b, const DVector& x0, double tolerance, int maxIterations)
+DVector Laplacian::solveConjGrad(const DVector& b, const DVector& x0, double tolerance, int maxIterations, std::ofstream& resFile)
 {
   // Variables intermédiaires
   DVector x(x0);
@@ -95,11 +95,17 @@ DVector Laplacian::solveConjGrad(const DVector& b, const DVector& x0, double tol
       p = res + gamma * p;
       beta = sqrt(res.dot(res));
       ++k;
+      resFile << beta << std::endl;
     }
   // Logs
   if ((k == maxIterations) && (beta > tolerance))
     {
-      std::cout << termcolor::yellow << "The GC method did not converge. Residual L2 norm = " << beta << " (" << maxIterations << " iterations)" << std::endl;
+      std::cout << termcolor::yellow << "SOLVER::GC::WARNING : The GC method did not converge. Residual L2 norm = " << beta << " (" << maxIterations << " iterations)" << std::endl;
+      std::cout << termcolor::reset;
+    }
+  else
+    {
+      std::cout << termcolor::green << "SOLVER::GC::SUCCESS : The GC method converged in " << k << " iterations ! Residual L2 norm = " << beta << std::endl;
       std::cout << termcolor::reset;
     }
   return x;

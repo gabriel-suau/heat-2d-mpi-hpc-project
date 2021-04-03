@@ -12,7 +12,7 @@ protected:
   DataFile* _DF;
   
   // Variables utiles
-  double _xmin, _ymin, _Lx, _Ly, _dx, _dy;
+  double _xmin, _ymin, _xmax, _ymax, _Lx, _Ly, _dx, _dy;
   int _Nx, _Ny;
 
   // Vecteur solution initiale
@@ -41,8 +41,8 @@ public:
   
   // Pour construire les CI/CL en fonction du système
   virtual double f(const double x, const double y, const double t) = 0;
-  virtual double g(const double x, const double y) = 0;
-  virtual double h(const double x, const double y) = 0;
+  virtual double g(const double x, const double y, const double t) = 0;
+  virtual double h(const double x, const double y, const double t) = 0;
 };
 
 // Classe fille scenario 1
@@ -55,8 +55,8 @@ public:
 
   // Fonctions
   double f(const double x, const double y, const double t);
-  double g(const double x, const double y);
-  double h(const double x, const double y);
+  double g(const double x, const double y, const double t);
+  double h(const double x, const double y, const double t);
 };
 
 // Classe fille scenario 2
@@ -69,8 +69,8 @@ public:
 
   // Fonctions
   double f(const double x, const double y, const double t);
-  double g(const double x, const double y);
-  double h(const double x, const double y);
+  double g(const double x, const double y, const double t);
+  double h(const double x, const double y, const double t);
 };
 
 // Classe fille scenario 3
@@ -83,8 +83,8 @@ public:
 
   // Fonctions
   double f(const double x, const double y, const double t);
-  double g(const double x, const double y);
-  double h(const double x, const double y);
+  double g(const double x, const double y, const double t);
+  double h(const double x, const double y, const double t);
 };
 
 #endif // FUNCTION_H

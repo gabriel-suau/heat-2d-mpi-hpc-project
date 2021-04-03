@@ -4,6 +4,7 @@
 #include "DataFile.h"
 #include "Function.h"
 #include "Vector.h"
+#include <fstream>
 
 class Laplacian
 {
@@ -37,7 +38,7 @@ public:
   
   // Produit matVec et GC
   DVector matVecProd(const DVector& x);
-  DVector solveConjGrad(const DVector& b, const DVector& x0, double tolerance, int maxIterations);
+  DVector solveConjGrad(const DVector& b, const DVector& x0, double tolerance, int maxIterations, std::ofstream& resFile);
   
   // Printer (pour debugger)
   void print() const;

@@ -13,7 +13,7 @@ Function::Function()
 }
 
 Function::Function(DataFile* DF):
-  _DF(DF), _xmin(DF->getxMin()), _ymin(DF->getyMin()), _Lx(DF->getLx()), _Ly(DF->getLy()), _dx(_DF->getDx()), _dy(_DF->getDy()), _Nx(DF->getNx()), _Ny(DF->getNy()), _Sol0(_Nx * _Ny), _sourceTerm(_Nx * _Ny)
+  _DF(DF), _xmin(DF->getxMin()), _ymin(DF->getyMin()), _xmax(DF->getxMax()), _ymax(DF->getyMax()), _Lx(DF->getLx()), _Ly(DF->getLy()), _dx(_DF->getDx()), _dy(_DF->getDy()), _Nx(DF->getNx()), _Ny(DF->getNy()), _Sol0(_Nx * _Ny), _sourceTerm(_Nx * _Ny)
 {
 }
 
@@ -22,6 +22,8 @@ void Function::Initialize(DataFile* DF)
   _DF = DF;
   _xmin = DF->getxMin();
   _ymin = DF->getyMin();
+  _xmax = DF->getxMax();
+  _ymax = DF->getyMax();
   _Lx = DF->getLx();
   _Ly = DF->getLy();
   _dx = DF->getDx();
@@ -49,12 +51,28 @@ void Function::Initialize()
 
 void Function::buildSourceTerm(double t)
 {
+  double D(_DF->getDiffCoeff());
+  // Terme source
   for (int i(0) ; i < _Nx ; ++i)
     {
       for (int j(0) ; j < _Ny ; ++j)
         {
-          _sourceTerm[i * _Nx + j] = f(_xmin + i*_dx, _ymin + j*_dy, t);
+          _sourceTerm[i + j * _Nx] = f(_xmin + i * _dx, _ymin + j * _dy, t);
         }
+    }
+
+  // Ajout des conditions aux limites
+  // Bas et haut
+  for (int i(0) ; i < _Nx ; ++i)
+    {
+      _sourceTerm[i] += D * g(_xmin + i * _dx, _ymin, t) / pow(_dy, 2);
+      _sourceTerm[i + (_Ny-1) * _Nx] += D * g(_xmin + i * _dx, _ymax, t) / pow(_dy, 2);
+    }
+  // Droite et gauche
+  for (int j(0) ; j < _Ny ; ++j)
+    {
+      _sourceTerm[j * _Nx] += D * h(_xmin, _ymin + j * _dy, t) / pow(_dx, 2);
+      _sourceTerm[_Nx - 1 + j * _Nx] += D * h(_xmax, _ymin + j * _dy, t) / pow(_dx, 2);
     }
 }
 
@@ -76,12 +94,12 @@ double Function1::f(const double x, const double y, const double t)
   return 2*(y-y*y+x-x*x);
 }
 
-double Function1::g(const double x, const double y)
+double Function1::g(const double x, const double y, const double t)
 {
   return 0.;
 }
 
-double Function1::h(const double x, const double y)
+double Function1::h(const double x, const double y, const double t)
 {
   return 0.;
 }
@@ -104,12 +122,12 @@ double Function2::f(const double x, const double y, const double t)
   return sin(x) + cos(y);
 }
 
-double Function2::g(const double x, const double y)
+double Function2::g(const double x, const double y, const double t)
 {
   return sin(x) + cos(y);
 }
 
-double Function2::h(const double x, const double y)
+double Function2::h(const double x, const double y, const double t)
 {
   return sin(x) + cos(y);
 }
@@ -133,12 +151,12 @@ double Function3::f(const double x, const double y, const double t)
   return exp(-pow(x - 0.5 * _Lx, 2)) * exp(-pow(y - 0.5 * _Ly, 2)) * cos(0.5 * M_PI * t);
 }
 
-double Function3::g(const double x, const double y)
+double Function3::g(const double x, const double y, const double t)
 {
   return 0.;
 }
 
-double Function3::h(const double x, const double y)
+double Function3::h(const double x, const double y, const double t)
 {
   return 1.;
 }

@@ -40,9 +40,9 @@ ymax
 
 # Nombre de noeuds de discrétisation pour chaque direction
 Nx
-200
+150
 Ny
-200
+150
 
 
 ##################################################
@@ -60,9 +60,9 @@ ImplicitEuler
 InitialTime
 0.
 FinalTime
-0.5
+10.0
 TimeStep
-0.005
+0.05
 CFL
 0.5
 
@@ -73,11 +73,11 @@ CFL
 
 # Nombre d'itérations max
 MaxIterations
-150
+700
 
 # Tolerance pour le test d'arrêt
 Tolerance
-1e-6
+1e-1
 
 # Sauvegarde de la norme des résidus dans un fichier
 IsSaveResidual
@@ -97,4 +97,4 @@ results
 
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 SaveFrequency
-10
+4

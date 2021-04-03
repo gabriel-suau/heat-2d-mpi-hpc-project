@@ -5,6 +5,7 @@
 #include "Function.h"
 #include "Laplacian.h"
 #include "Vector.h"
+#include <string>
 
 class TimeScheme
 {
@@ -22,6 +23,10 @@ protected:
   double _initialTime;
   double _finalTime;
   double _currentTime;
+
+  // Sauvegarde des résultats
+  std::string _resultsDir;
+  std::string _resFileName;
   
 public:
   // Constructeurs

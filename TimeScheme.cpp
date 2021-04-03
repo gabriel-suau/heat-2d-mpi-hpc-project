@@ -8,6 +8,7 @@
 #include <fstream>
 #include <string>
 #include <cmath>
+#include <chrono>
 
 //--------------------------------------------------//
 //--------------------Base Class--------------------//
@@ -17,7 +18,7 @@ TimeScheme::TimeScheme()
 }
 
 TimeScheme::TimeScheme(DataFile* DF, Function* function, Laplacian* laplacian):
-  _DF(DF), _function(function), _laplacian(laplacian), _Sol(_function->getInitialCondition()), _timeStep(DF->getTimeStep()), _initialTime(DF->getInitialTime()), _finalTime(DF->getFinalTime()), _currentTime(_initialTime)
+  _DF(DF), _function(function), _laplacian(laplacian), _Sol(_function->getInitialCondition()), _timeStep(DF->getTimeStep()), _initialTime(DF->getInitialTime()), _finalTime(DF->getFinalTime()), _currentTime(_initialTime), _resultsDir(DF->getResultsDirectory()), _resFileName(_resultsDir + "/" + DF->getResFile())
 {
 }
 
@@ -31,6 +32,8 @@ void TimeScheme::Initialize(DataFile* DF, Function* function, Laplacian* laplaci
   _initialTime = DF->getInitialTime();
   _finalTime = DF->getFinalTime();
   _currentTime = _initialTime;
+  _resultsDir = DF->getResultsDirectory();
+  _resFileName = DF->getResFile();
 }
 
 void TimeScheme::saveCurrentSolution(std::string &fileName) const
@@ -72,12 +75,14 @@ void TimeScheme::solve()
 
   // Variables pratiques
   int n(0);
-  std::string resultsDir(_DF->getResultsDirectory());
   int scenario(_DF->getScenario());
 
   // Sauvegarde la condition initiale
-  std::string fileName(resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
-  saveCurrentSolution(fileName);
+  std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
+  saveCurrentSolution(solFileName);
+
+  // Démarrage du chrono
+  auto start = std::chrono::high_resolution_clock::now();
 
   // Boucle en temps
   while (_currentTime < _finalTime)
@@ -88,13 +93,17 @@ void TimeScheme::solve()
       if (n % _DF->getSaveFrequency() == 0)
         {
           std::cout << "Saving solution at t = " << _currentTime << std::endl;
-          std::string fileName(resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
-          saveCurrentSolution(fileName);
+          std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
+          saveCurrentSolution(solFileName);
         }
     }
 
+  // Fin du chrono
+  auto finish = std::chrono::high_resolution_clock::now();
+  double duration = std::chrono::duration<double, std::milli>(finish-start).count() * 1e-3;
+  
   // Logs de fin
-  std::cout << termcolor::green << "SUCCESS::TIMESCHEME : Time loop completed successfully !" << std::endl;
+  std::cout << termcolor::green << "SUCCESS::TIMESCHEME : Time loop completed successfully in " << duration << " seconds !" << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
 }
 
@@ -166,8 +175,11 @@ void ImplicitEuler::oneStep()
   double dt(_timeStep);
   double tolerance(_DF->getTolerance());
   int maxIt(_DF->getMaxIterations());
+  // Ouverture du fichier pour les résidus
+  std::ofstream resFile(_resFileName, std::ios::app);
+  resFile.precision(7);
   // Calcul du terme source
   _function->buildSourceTerm(_currentTime + dt);
   // Calcul de la solution
-  _Sol = _laplacian->solveConjGrad(dt * _function->getSourceTerm(), _Sol, tolerance, maxIt);
+  _Sol = _laplacian->solveConjGrad(dt * _function->getSourceTerm(), _Sol, tolerance, maxIt, resFile);
 }
