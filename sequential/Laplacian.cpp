@@ -2,6 +2,7 @@
 #include "Function.h"
 #include "DataFile.h"
 #include "Vector.h"
+
 #include <cmath>
 
 Laplacian::Laplacian()
@@ -11,7 +12,7 @@ Laplacian::Laplacian()
 
 Laplacian::Laplacian(DataFile* DF, Function* function):
   _DF(DF), _function(function)
-{  
+{
 }
 
 
@@ -50,7 +51,9 @@ void Laplacian::Initialize()
 
 DVector Laplacian::matVecProd(const DVector& x)
 {
+  // Vecteur resultat
   DVector result(x);
+
   for (int i(0) ; i < x.size() ; ++i)
     {
       result[i] = _gamma * x[i];

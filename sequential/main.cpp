@@ -5,21 +5,11 @@
 #include "Laplacian.h"
 #include "TimeScheme.h"
 
-#include <mpi.h>
 #include <iostream>
 #include <chrono>
 
 int main(int argc, char** argv)
 {
-  //------------------------------------------------------//
-  //---------------------Open MPI Env---------------------//
-  //------------------------------------------------------//
-  MPI_Init(&argc, &argv);
-
-  int rank, size;
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
   //------------------------------------------------//
   //---------------------Checks---------------------//
   //------------------------------------------------//
@@ -81,7 +71,7 @@ int main(int argc, char** argv)
   //------------------------------------------------------------//
   Laplacian* laplacian = new Laplacian(DF, function);
   laplacian->Initialize();
-
+  
   
   //-----------------------------------------------------//
   //---------------------Time Scheme---------------------//
@@ -126,12 +116,7 @@ int main(int argc, char** argv)
   std::cout << termcolor::reset << "Let me terminate myself now..." << std::endl;
   std::cout << "====================================================================================================" << std::endl << std::endl;
 
-  
-  //-------------------------------------------------------//
-  //---------------------Close MPI Env---------------------//
-  //-------------------------------------------------------//  
-  MPI_Finalize();
-  
+    
   // End
   return EXIT_SUCCESS;
 }

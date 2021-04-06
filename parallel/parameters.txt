@@ -60,9 +60,9 @@ ImplicitEuler
 InitialTime
 0.
 FinalTime
-1
+10
 TimeStep
-0.01
+1
 CFL
 0.9
 
@@ -98,4 +98,4 @@ results
 
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 SaveFrequency
-20
+1
