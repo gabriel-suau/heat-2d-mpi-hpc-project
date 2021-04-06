@@ -49,6 +49,9 @@ public:
   virtual void oneStep() = 0;
   void saveCurrentSolution(std::string& fileName) const;
   void solve();
+
+  // Compute the L2 error norm
+  double computeCurrentError();
 };
 
 class ExplicitEuler: public TimeScheme

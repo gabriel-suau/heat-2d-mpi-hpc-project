@@ -155,8 +155,9 @@ void DataFile::readDataFile()
   
   // Création et nettoyage du dossier de résultats
   std::cout << "Creating the results directory..." << std::endl;
-  system(("mkdir -p ./" +_resultsDir).c_str());
-  system(("rm -f ./" +_resultsDir + "/solution*").c_str());
+  system(("mkdir -p ./" + _resultsDir).c_str());
+  system(("rm -f ./" + _resultsDir + "/solution*").c_str());
+  system(("rm -f ./" + _resultsDir + "/" + _resFile).c_str());
   system(("cp -r ./" + _fileName + " ./" + _resultsDir + "/params.txt").c_str());
 
   // Logs

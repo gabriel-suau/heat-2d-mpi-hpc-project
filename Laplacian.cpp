@@ -81,8 +81,9 @@ DVector Laplacian::solveConjGrad(const DVector& b, const DVector& x0, double tol
   DVector x(x0);
   DVector res(b - this->matVecProd(x0));
   DVector p(res);
-  double beta(res.dot(res));
-
+  double beta(sqrt(res.dot(res)));
+  resFile << beta << std::endl;
+  
   // Itérations de la méthode
   int k(0);
   while ((beta > tolerance) && (k < maxIterations))

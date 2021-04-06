@@ -39,7 +39,7 @@ void TimeScheme::Initialize(DataFile* DF, Function* function, Laplacian* laplaci
 void TimeScheme::saveCurrentSolution(std::string &fileName) const
 {
   std::ofstream outputFile(fileName, std::ios::out);
-  outputFile.precision(7);
+  outputFile.precision(10);
 
   // Récupération des variables utiles
   int Nx(_DF->getNx()), Ny(_DF->getNy());
@@ -88,13 +88,22 @@ void TimeScheme::solve()
   while (_currentTime < _finalTime)
     {
       oneStep();
+      _function->buildExactSolution(_currentTime);
       ++n;
       _currentTime += _timeStep;
       if (n % _DF->getSaveFrequency() == 0)
         {
+          // Save numerical solution
           std::cout << "Saving solution at t = " << _currentTime << std::endl;
           std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
           saveCurrentSolution(solFileName);
+          // Save exact solution
+          if (_DF->getScenario() == 1 || _DF->getScenario() == 2)
+            {
+              std::cout << "Saving exact solution at t = " << _currentTime << std::endl;
+              std::string exactSolFileName(_resultsDir + "/solution_exacte_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
+              _function->saveCurrentExactSolution(exactSolFileName);
+            }
         }
     }
 
@@ -102,9 +111,24 @@ void TimeScheme::solve()
   auto finish = std::chrono::high_resolution_clock::now();
   double duration = std::chrono::duration<double, std::milli>(finish-start).count() * 1e-3;
   
+  // Calcul de l'erreur pour les scenario 1 et 2
+  if (_DF->getScenario() == 1 || _DF->getScenario() == 2)
+    {
+      double error(computeCurrentError());
+      std::cout << "L2 error = " << error << " at t = " << _currentTime << " for a time step dt = " << _timeStep << std::endl;
+    }
   // Logs de fin
   std::cout << termcolor::green << "SUCCESS::TIMESCHEME : Time loop completed successfully in " << duration << " seconds !" << std::endl;
   std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
+}
+
+double TimeScheme::computeCurrentError()
+{
+  double error(0.);
+  DVector errorVec(_Sol - _function->getExactSolution());
+  error = errorVec.dot(errorVec);
+  error = sqrt(_DF->getDx() * error);
+  return error;
 }
 
 
@@ -181,5 +205,5 @@ void ImplicitEuler::oneStep()
   // Calcul du terme source
   _function->buildSourceTerm(_currentTime + dt);
   // Calcul de la solution
-  _Sol = _laplacian->solveConjGrad(dt * _function->getSourceTerm(), _Sol, tolerance, maxIt, resFile);
+  _Sol = _laplacian->solveConjGrad(_Sol + dt * _function->getSourceTerm(), _Sol, tolerance, maxIt, resFile);
 }

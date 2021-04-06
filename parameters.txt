@@ -12,7 +12,7 @@
 #       2 --> f = g = h = sin(x) + cos(y)
 #       3 --> f = exp(-(x-Lx/2)^2)*exp(-(y-Ly/2)^2)*cos(pi/2*t), g = 0, h = 1
 Scenario
-3
+2
 
 
 ##################################################
@@ -40,9 +40,9 @@ ymax
 
 # Nombre de noeuds de discrétisation pour chaque direction
 Nx
-150
+101
 Ny
-150
+101
 
 
 ##################################################
@@ -60,11 +60,11 @@ ImplicitEuler
 InitialTime
 0.
 FinalTime
-10.0
+1
 TimeStep
-0.05
+0.1
 CFL
-0.5
+0.9
 
 
 #############################################################################
@@ -73,11 +73,11 @@ CFL
 
 # Nombre d'itérations max
 MaxIterations
-700
+200
 
 # Tolerance pour le test d'arrêt
 Tolerance
-1e-1
+1e-5
 
 # Sauvegarde de la norme des résidus dans un fichier
 IsSaveResidual
@@ -86,6 +86,7 @@ IsSaveResidual
 # File in which the residual norm is to be written
 ResidualFile
 norme_residus.dat
+
 
 ###############################################################
 ###             Sauvegarde/Stockage des résultats           ###
@@ -97,4 +98,4 @@ results
 
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 SaveFrequency
-4
+1

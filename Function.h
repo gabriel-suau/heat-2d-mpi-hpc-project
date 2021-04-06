@@ -19,7 +19,9 @@ protected:
   DVector _Sol0;
   // Terme source
   DVector _sourceTerm;
-
+  // Solution exacte
+  DVector _exactSol;
+  
 public:
   // Constructeur
   Function();
@@ -35,9 +37,16 @@ public:
   // Construction du terme source
   void buildSourceTerm(double t);
 
+  // Construction de la solution exacte
+  virtual void buildExactSolution(double t) = 0;
+  
+  // Sauvegarde de la solution exacte
+  void saveCurrentExactSolution(std::string& fileName) const;
+
   // Getters
   const DVector& getInitialCondition() const {return _Sol0;};
   const DVector& getSourceTerm() const {return _sourceTerm;};
+  const DVector& getExactSolution() const {return _exactSol;};
   
   // Pour construire les CI/CL en fonction du système
   virtual double f(const double x, const double y, const double t) = 0;
@@ -57,6 +66,9 @@ public:
   double f(const double x, const double y, const double t);
   double g(const double x, const double y, const double t);
   double h(const double x, const double y, const double t);
+
+  // Exact solution
+  void buildExactSolution(double t);
 };
 
 // Classe fille scenario 2
@@ -71,6 +83,9 @@ public:
   double f(const double x, const double y, const double t);
   double g(const double x, const double y, const double t);
   double h(const double x, const double y, const double t);
+
+  // Exact solution
+  void buildExactSolution(double t);
 };
 
 // Classe fille scenario 3
@@ -85,6 +100,9 @@ public:
   double f(const double x, const double y, const double t);
   double g(const double x, const double y, const double t);
   double h(const double x, const double y, const double t);
+
+  // Exact solution
+  void buildExactSolution(double t);
 };
 
 #endif // FUNCTION_H
