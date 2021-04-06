@@ -141,8 +141,8 @@ void DataFile::readDataFile()
   // Calcul des pas d'espace
   _Lx = _xmax - _xmin;
   _Ly = _ymax - _ymin;
-  _dx = _Lx / _Nx;
-  _dy = _Ly / _Ny;
+  _dx = _Lx / (_Nx - 1);
+  _dy = _Ly / (_Ny - 1);
   
   // Calcul du pas de temps pour Euler Explicite
   if (_timeScheme == "ExplicitEuler")
