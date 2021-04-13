@@ -1,4 +1,5 @@
 #include "Laplacian.h"
+#include "MPIUtils.h"
 #include "Function.h"
 #include "DataFile.h"
 #include "Vector.h"
@@ -11,18 +12,16 @@ Laplacian::Laplacian()
 }
 
 
-Laplacian::Laplacian(DataFile* DF, Function* function, int MPIRank, int MPISize):
-  _DF(DF), _function(function), _MPIRank(MPIRank), _MPISize(MPISize)
+Laplacian::Laplacian(DataFile* DF, Function* function):
+  _DF(DF), _function(function)
 {
 }
 
 
-void Laplacian::Initialize(DataFile* DF, Function* function, int MPIRank, int MPISize)
+void Laplacian::Initialize(DataFile* DF, Function* function)
 {
   _DF = DF;
   _function = function;
-  _MPIRank = MPIRank;
-  _MPISize = MPISize;
   this->Initialize();
 }
 
@@ -54,32 +53,28 @@ void Laplacian::Initialize()
 
 DVector Laplacian::matVecProd(const DVector& x)
 {
-  // Parallelisme
-  int iBegin, iEnd;
-  charge(x.size(), _MPISize, _MPIRank, iBegin, iEnd);
-  int locSize(iEnd - iBegin + 1);
-
   // Vecteur resultat
-  DVector result(locSize);
+  DVector result(localSize);
 
-  for (int i(0) ; i < locSize ; ++i)
+  // Boucle
+  for (int k(0) ; k < localSize ; ++k)
     {
-      result[i] = _gamma * x[i];
-      if (i % _Nx != 0)
+      result[k] = _gamma * x[k];
+      if (k % _Nx != 0)
         {
-          result[i] += _beta * x[i-1];
+          result[k] += _beta * x[k-1];
         }
-      if (i % _Nx != _Nx-1)
+      if (k % _Nx != _Nx-1)
         {
-          result[i] += _beta * x[i+1];
+          result[k] += _beta * x[k+1];
         }
-      if (i < _Nx * _Ny - _Nx)
+      if (k < _Nx * _Ny - _Nx)
         {
-          result[i] += _alpha * x[i+_Nx];
+          result[k] += _alpha * x[k+_Nx];
         }
-      if (i >= _Nx)
+      if (k >= _Nx)
         {
-          result[i] += _alpha*x[i-_Nx];
+          result[k] += _alpha*x[k-_Nx];
         }
     }
   return result;
@@ -110,15 +105,18 @@ DVector Laplacian::solveConjGrad(const DVector& b, const DVector& x0, double tol
       resFile << beta << std::endl;
     }
   // Logs
-  if ((k == maxIterations) && (beta > tolerance))
+  if (MPI_Rank == 0)
     {
-      std::cout << termcolor::yellow << "SOLVER::GC::WARNING : The GC method did not converge. Residual L2 norm = " << beta << " (" << maxIterations << " iterations)" << std::endl;
-      std::cout << termcolor::reset;
-    }
-  else
-    {
-      std::cout << termcolor::green << "SOLVER::GC::SUCCESS : The GC method converged in " << k << " iterations ! Residual L2 norm = " << beta << std::endl;
-      std::cout << termcolor::reset;
+      if ((k == maxIterations) && (beta > tolerance))
+        {
+          std::cout << termcolor::yellow << "SOLVER::GC::WARNING : The GC method did not converge. Residual L2 norm = " << beta << " (" << maxIterations << " iterations)" << std::endl;
+          std::cout << termcolor::reset;
+        }
+      else
+        {
+          std::cout << termcolor::green << "SOLVER::GC::SUCCESS : The GC method converged in " << k << " iterations ! Residual L2 norm = " << beta << std::endl;
+          std::cout << termcolor::reset;
+        } 
     }
   return x;
 }

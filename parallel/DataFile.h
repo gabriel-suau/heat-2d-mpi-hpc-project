@@ -1,6 +1,7 @@
 #ifndef DATA_FILE_H
 #define DATA_FILE_H
 
+#include "MPIUtils.h"
 #include <string>
 
 class DataFile

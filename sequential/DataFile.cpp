@@ -149,8 +149,14 @@ void DataFile::readDataFile()
       std::cout << termcolor::yellow << "Adjusting the time step to fit the CFL condition" << std::endl;
       std::cout << termcolor::reset;
       _timeStep = _CFL * (pow(_dx,2) * pow(_dy,2)) / (2. * _diffCoeff * (pow(_dx,2) + pow(_dy,2)));
-      std::cout << "The new time step is dt = " << _timeStep << std::endl;
     }
+
+  // Calcul du nombre d'iterations en temps et ajustement du pas de temps
+  std::cout << termcolor::yellow << "Adjusting the time step to land exactly on the final time" << std::endl;
+  std::cout << termcolor::reset;
+  int nbIterations(int(ceil((_finalTime - _initialTime)/_timeStep)));
+  _timeStep = (_finalTime - _initialTime)/nbIterations;
+  std::cout << "The new time step is dt = " << _timeStep << std::endl;
   
   // Création et nettoyage du dossier de résultats
   std::cout << "Creating the results directory..." << std::endl;

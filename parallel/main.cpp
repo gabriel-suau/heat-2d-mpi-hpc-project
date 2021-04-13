@@ -1,4 +1,5 @@
 #include "termcolor.h"
+#include "MPIUtils.h"
 #include "Vector.h"
 #include "DataFile.h"
 #include "Function.h"
@@ -9,38 +10,51 @@
 #include <iostream>
 #include <chrono>
 
+// Global MPI variables
+int MPI_Size, MPI_Rank, kBegin, kEnd, localSize;
+
+// Main function
 int main(int argc, char** argv)
 {
   //------------------------------------------------------//
-  //---------------------Open MPI Env---------------------//
+  //---------------------Init MPI Env---------------------//
   //------------------------------------------------------//
   MPI_Init(&argc, &argv);
-
-  int MPIRank, MPISize;
-  MPI_Comm_size(MPI_COMM_WORLD, &MPISize);
-  MPI_Comm_rank(MPI_COMM_WORLD, &MPIRank);
+  MPI_Comm_size(MPI_COMM_WORLD, &MPI_Size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &MPI_Rank);
+  
 
   //------------------------------------------------//
   //---------------------Checks---------------------//
   //------------------------------------------------//
   if (argc < 2)
     {
-      std::cout << termcolor::red << "ERROR::MAIN : Please, enter the name of your data file." << std::endl;
-      std::cout << termcolor::reset;
-      exit(-1);
+      if (MPI_Rank == 0)
+        {
+          std::cout << termcolor::red << "ERROR::MAIN : Please, enter the name of your data file." << std::endl;
+          std::cout << termcolor::reset;
+        }
+      exit(1);
     }
   else if (argc > 2)
     {
-      std::cout << termcolor::yellow << "WARNING::MAIN : Too many arguments : only 1 was expected but " << argc - 1 << " were given..."<< std::endl;
-      std::cout << termcolor::reset;
+      if (MPI_Rank == 0)
+        {
+          std::cout << termcolor::yellow << "WARNING::MAIN : Too many arguments : only 1 was expected but " << argc - 1 << " were given..."<< std::endl;
+          std::cout << termcolor::reset; 
+        }
     }
+
   
   //--------------------------------------------------------//
   //---------------------Beginning logs---------------------//
   //--------------------------------------------------------//
-  std::cout << "====================================================================================================" << std::endl;
-  std::cout << "Solving 2D heat equation for you !" << std::endl;
-  std::cout << "====================================================================================================" << std::endl << std::endl;
+  if (MPI_Rank == 0)
+    {
+      std::cout << "====================================================================================================" << std::endl;
+      std::cout << "Solving 2D heat equation for you !" << std::endl;
+      std::cout << "====================================================================================================" << std::endl << std::endl; 
+    }
 
   
   //--------------------------------------------------------//
@@ -49,6 +63,10 @@ int main(int argc, char** argv)
   DataFile* DF = new DataFile(argv[1]);
   DF->readDataFile();
   DF->printData();
+  
+  // Compute the load allocated to the proc
+  charge(DF->getNx() * DF->getNy(), MPI_Size, MPI_Rank, kBegin, kEnd);
+  localSize = kEnd - kBegin + 1;
 
   
   //-------------------------------------------------------------//
@@ -69,9 +87,12 @@ int main(int argc, char** argv)
     }
   else
     {
-      std::cout << termcolor::red << "ERROR::FUNCTION : Scenario not implemented !" << std::endl;
-      std::cout << termcolor::reset;
-      exit(-1);
+      if (MPI_Rank == 0)
+        {
+          std::cout << termcolor::red << "ERROR::FUNCTION : Scenario not implemented !" << std::endl;
+          std::cout << termcolor::reset; 
+        }
+      exit(1);
     }
   function->Initialize();
   
@@ -79,7 +100,7 @@ int main(int argc, char** argv)
   //------------------------------------------------------------//
   //---------------------Discrete laplacian---------------------//
   //------------------------------------------------------------//
-  Laplacian* laplacian = new Laplacian(DF, function, MPIRank, MPISize);
+  Laplacian* laplacian = new Laplacian(DF, function);
   laplacian->Initialize();
 
   
@@ -97,9 +118,12 @@ int main(int argc, char** argv)
     }
   else
     {
-      std::cout << termcolor::red << "ERROR::TIMESCHEME : Case not implemented." << std::endl;
-      std::cout << termcolor::reset;
-      exit(-1);
+      if (MPI_Rank == 0)
+        {
+          std::cout << termcolor::red << "ERROR::TIMESCHEME : Case not implemented." << std::endl;
+          std::cout << termcolor::reset; 
+        }
+      exit(1);
     }
   
 
@@ -121,10 +145,13 @@ int main(int argc, char** argv)
   //-----------------------------------------------------//
   //---------------------Ending logs---------------------//
   //-----------------------------------------------------//
-  std::cout << "====================================================================================================" << std::endl;
-  std::cout << termcolor::green << "SUCCESS : Successfully solved the 2D heat equation for you !" << std::endl;
-  std::cout << termcolor::reset << "Let me terminate myself now..." << std::endl;
-  std::cout << "====================================================================================================" << std::endl << std::endl;
+  if (MPI_Rank == 0)
+    {
+      std::cout << "====================================================================================================" << std::endl;
+      std::cout << termcolor::green << "SUCCESS : Successfully solved the 2D heat equation for you !" << std::endl;
+      std::cout << termcolor::reset << "Let me terminate myself now..." << std::endl;
+      std::cout << "====================================================================================================" << std::endl << std::endl; 
+    }
 
   
   //-------------------------------------------------------//

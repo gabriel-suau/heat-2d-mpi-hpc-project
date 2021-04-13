@@ -9,11 +9,10 @@ The code will be validated with test cases, and then parallelized using the MPI 
 ## Credits
 All developpers are students at ENSEIRB-MATMECA, a french engineering school located in Talence.
 
-* Robin Colombier
+* Geoffrey Lebaud
 * Rémi Pégouret
 * Gabriel Suau
 
 ## Check-list
-- [ ] Make a working sequential version of the code
+- [x] Make a working sequential version of the code
 - [ ] Parallelize the linear solver (Conjugate Gradient Method)
-- [ ] Parallelize the outputs

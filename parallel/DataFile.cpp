@@ -1,5 +1,6 @@
 #include "DataFile.h"
 #include "termcolor.h"
+#include "MPIUtils.h"
 
 #include <fstream>
 #include <sstream>
@@ -44,14 +45,20 @@ void DataFile::readDataFile()
   std::ifstream dataFile(_fileName.data());
   if (!dataFile.is_open())
     {
-      std::cout << termcolor::red << "ERROR::DATAFILE : Unable to open file " << _fileName << std::endl;
-      std::cout << termcolor::reset;
+      if (MPI_Rank == 0)
+        {
+          std::cout << termcolor::red << "ERROR::DATAFILE : Unable to open file " << _fileName << std::endl;
+          std::cout << termcolor::reset; 
+        }
       exit(-1);
     }
   else
     {
-      std::cout << "====================================================================================================" << std::endl;
-      std::cout << "Reading data file " << _fileName << std::endl;
+      if (MPI_Rank == 0)
+        {
+          std::cout << "====================================================================================================" << std::endl;
+          std::cout << "Reading data file " << _fileName << std::endl; 
+        }
     }
   // Pour stocker chaque ligne
   std::string line;
@@ -147,67 +154,86 @@ void DataFile::readDataFile()
   // Calcul du pas de temps pour Euler Explicite
   if (_timeScheme == "ExplicitEuler")
     {
-      std::cout << termcolor::yellow << "Adjusting the time step to fit the CFL condition" << std::endl;
-      std::cout << termcolor::reset;
+      if (MPI_Rank == 0)
+        {
+          std::cout << termcolor::yellow << "Adjusting the time step to fit the CFL condition" << std::endl;
+          std::cout << termcolor::reset; 
+        }
       _timeStep = _CFL * (pow(_dx,2) * pow(_dy,2)) / (2. * _diffCoeff * (pow(_dx,2) + pow(_dy,2)));
-      std::cout << "The new time step is dt = " << _timeStep << std::endl;
     }
-  
+
+  // Calcul du nombre d'iterations en temps et ajustement du pas de temps
+  if (MPI_Rank == 0)
+    {
+      std::cout << termcolor::yellow << "Adjusting the time step to land exactly on the final time" << std::endl;
+      std::cout << termcolor::reset; 
+    }
+  int nbIterations(int(ceil((_finalTime - _initialTime)/_timeStep)));
+  _timeStep = (_finalTime - _initialTime)/nbIterations;
+  if (MPI_Rank == 0)
+    std::cout << "The new time step is dt = " << _timeStep << std::endl;
+
   // Création et nettoyage du dossier de résultats
-  std::cout << "Creating the results directory..." << std::endl;
-  system(("mkdir -p ./" + _resultsDir).c_str());
-  system(("rm -f ./" + _resultsDir + "/solution*").c_str());
-  system(("rm -f ./" + _resultsDir + "/" + _resFile).c_str());
-  system(("cp -r ./" + _fileName + " ./" + _resultsDir + "/params.txt").c_str());
+  if (MPI_Rank == 0)
+    {
+      std::cout << "Creating the results directory..." << std::endl;
+      system(("mkdir -p ./" + _resultsDir).c_str());
+      system(("rm -f ./" + _resultsDir + "/solution*").c_str());
+      system(("rm -f ./" + _resultsDir + "/" + _resFile).c_str());
+      system(("cp -r ./" + _fileName + " ./" + _resultsDir + "/params.txt").c_str()); 
 
-  // Logs
-  std::cout << termcolor::green << "SUCCESS::DATAFILE : Results directory created successfully !" << std::endl;
-  std::cout << termcolor::reset;
+      // Logs
+      std::cout << termcolor::green << "SUCCESS::DATAFILE : Results directory created successfully !" << std::endl;
+      std::cout << termcolor::reset;
 
-  // Logs de succès
-  std::cout << termcolor::green << "SUCCESS::DATAFILE : File read successfully" << std::endl;
-  std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
+      // Logs de succès
+      std::cout << termcolor::green << "SUCCESS::DATAFILE : File read successfully" << std::endl;
+      std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
+    }
 }
 
 
 // Affiche les paramètres sur le terminal
 void DataFile::printData() const
 {
-  std::cout << "====================================================================================================" << std::endl;
-  std::cout << "Printing parameters of " << _fileName << std::endl;
-  std::cout << "Scenario              = " << _scenario << std::endl;
-  std::cout << "Diffusion Coefficient = " << _diffCoeff << std::endl;
-  std::cout << "Spatial parameters : " << std::endl;
-  std::cout << "    |xmin             = " << _xmin << std::endl;
-  std::cout << "    |xmax             = " << _xmax << std::endl;
-  std::cout << "    |ymin             = " << _ymin << std::endl;
-  std::cout << "    |ymax             = " << _ymax << std::endl;
-  std::cout << "    |Lx               = " << _Lx << std::endl;
-  std::cout << "    |Ly               = " << _Ly << std::endl;
-  std::cout << "    |Nx               = " << _Nx << std::endl;
-  std::cout << "    |Ny               = " << _Ny << std::endl;
-  std::cout << "    |dx               = " << _dx << std::endl;
-  std::cout << "    |dy               = " << _dy << std::endl;
-  std::cout << "Time Scheme           = " << _timeScheme << std::endl;
-  std::cout << "Initial time          = " << _initialTime << std::endl;
-  std::cout << "Final time            = " << _finalTime << std::endl;
-  if (_timeScheme == "ExplicitEuler")
+  if (MPI_Rank == 0)
     {
-      std::cout << "CFL number            = " << _CFL << std::endl; 
-    }
-  std::cout << "Time step             = " << _timeStep << std::endl;
-  if (_timeScheme == "ImplicitEuler")
-    {
-      std::cout << "Linear solver         : Conjugate Gradient" << std::endl;
-      std::cout << "    |Max Iterations   = " << _maxIterations << std::endl;
-      std::cout << "    |Tolerance        = " << _tolerance << std::endl;
-      std::cout << "    |Save residual ?  = " << _isSaveResidual << std::endl;
-      if (_isSaveResidual)
+      std::cout << "====================================================================================================" << std::endl;
+      std::cout << "Printing parameters of " << _fileName << std::endl;
+      std::cout << "Scenario              = " << _scenario << std::endl;
+      std::cout << "Diffusion Coefficient = " << _diffCoeff << std::endl;
+      std::cout << "Spatial parameters : " << std::endl;
+      std::cout << "    |xmin             = " << _xmin << std::endl;
+      std::cout << "    |xmax             = " << _xmax << std::endl;
+      std::cout << "    |ymin             = " << _ymin << std::endl;
+      std::cout << "    |ymax             = " << _ymax << std::endl;
+      std::cout << "    |Lx               = " << _Lx << std::endl;
+      std::cout << "    |Ly               = " << _Ly << std::endl;
+      std::cout << "    |Nx               = " << _Nx << std::endl;
+      std::cout << "    |Ny               = " << _Ny << std::endl;
+      std::cout << "    |dx               = " << _dx << std::endl;
+      std::cout << "    |dy               = " << _dy << std::endl;
+      std::cout << "Time Scheme           = " << _timeScheme << std::endl;
+      std::cout << "Initial time          = " << _initialTime << std::endl;
+      std::cout << "Final time            = " << _finalTime << std::endl;
+      if (_timeScheme == "ExplicitEuler")
         {
-          std::cout << "    |Residual File    = " << _resFile << std::endl; 
+          std::cout << "CFL number            = " << _CFL << std::endl; 
         }
+      std::cout << "Time step             = " << _timeStep << std::endl;
+      if (_timeScheme == "ImplicitEuler")
+        {
+          std::cout << "Linear solver         : Conjugate Gradient" << std::endl;
+          std::cout << "    |Max Iterations   = " << _maxIterations << std::endl;
+          std::cout << "    |Tolerance        = " << _tolerance << std::endl;
+          std::cout << "    |Save residual ?  = " << _isSaveResidual << std::endl;
+          if (_isSaveResidual)
+            {
+              std::cout << "    |Residual File    = " << _resFile << std::endl; 
+            }
+        }
+      std::cout << "Results directory     = " << _resultsDir << std::endl;
+      std::cout << "Save Frequency        = " << _saveFrequency << std::endl;
+      std::cout << "====================================================================================================" << std::endl << std::endl; 
     }
-  std::cout << "Results directory     = " << _resultsDir << std::endl;
-  std::cout << "Save Frequency        = " << _saveFrequency << std::endl;
-  std::cout << "====================================================================================================" << std::endl << std::endl;
 }

@@ -1,4 +1,5 @@
 #include "Function.h"
+#include "MPIUtils.h"
 #include "DataFile.h"
 #include "termcolor.h"
 #include "Vector.h"
@@ -14,7 +15,7 @@ Function::Function()
 }
 
 Function::Function(DataFile* DF):
-  _DF(DF), _xmin(DF->getxMin()), _ymin(DF->getyMin()), _xmax(DF->getxMax()), _ymax(DF->getyMax()), _Lx(DF->getLx()), _Ly(DF->getLy()), _dx(_DF->getDx()), _dy(_DF->getDy()), _Nx(DF->getNx()), _Ny(DF->getNy()), _Sol0(_Nx * _Ny), _sourceTerm(_Nx * _Ny), _exactSol(_Nx * _Ny)
+  _DF(DF), _xmin(DF->getxMin()), _ymin(DF->getyMin()), _xmax(DF->getxMax()), _ymax(DF->getyMax()), _Lx(DF->getLx()), _Ly(DF->getLy()), _dx(_DF->getDx()), _dy(_DF->getDy()), _Nx(DF->getNx()), _Ny(DF->getNy()), _Sol0(localSize), _sourceTerm(localSize), _exactSol(localSize)
 {
 }
 
@@ -31,53 +32,68 @@ void Function::Initialize(DataFile* DF)
   _dy = DF->getDy();
   _Nx = DF->getNx();
   _Ny = DF->getNy();
-  _Sol0.resize(_Nx * _Ny, 1.);
-  _sourceTerm.resize(_Nx * _Ny);
-  _exactSol.resize(_Nx * _Ny);
+  _Sol0.resize(localSize);
+  _sourceTerm.resize(localSize);
+  _exactSol.resize(localSize);
   this->Initialize();
 }
 
 void Function::Initialize()
 {
   // Logs de début
-  std::cout << "====================================================================================================" << std::endl;
-  std::cout << "Building initial condition..." << std::endl;
-
-  // Condition initiale
-  _Sol0.resize(_Nx * _Ny);
-  for (int i(0) ; i < _Nx * _Ny ; ++i)
+  if (MPI_Rank == 0)
+    {
+      std::cout << "====================================================================================================" << std::endl;
+      std::cout << "Building initial condition..." << std::endl; 
+    }
+  
+  // Resize la CI, le terme source et la solution exacte
+  _Sol0.resize(localSize);
+  _sourceTerm.resize(localSize);
+  _exactSol.resize(localSize);
+  for (int i(0) ; i < localSize ; ++i)
     {
       _Sol0[i] = 1.;
     }
 
   // Logs de fin
-  std::cout << termcolor::green << "SUCCESS::FUNCTION : Initial Condition was successfully built." << std::endl;
-  std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
+  if (MPI_Rank == 0)
+    {
+      std::cout << termcolor::green << "SUCCESS::FUNCTION : Initial Condition was successfully built." << std::endl;
+      std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl; 
+    }
 }
 
 void Function::buildSourceTerm(double t)
 {
   double D(_DF->getDiffCoeff());
   // Terme source
-  for (int i(0) ; i < _Nx ; ++i)
+  for (int k(kBegin) ; k <= kEnd ; ++k)
     {
-      for (int j(0) ; j < _Ny ; ++j)
+      // Intérieur du domaine
+      int i(k%_Nx), j(k/_Nx);
+      _sourceTerm[k - kBegin] = f(_xmin + i * _dx, _ymin + j * _dy, t);
+      // Conditions aux limites
+      // Bord bas
+      if (j == 0)
         {
-          _sourceTerm[i + j * _Nx] = f(_xmin + i * _dx, _ymin + j * _dy, t);
+          _sourceTerm[k - kBegin] += D * g(_xmin + i * _dx, _ymin, t) / pow(_dy, 2);
         }
-    }
-  // Ajout des conditions aux limites
-  // Bas et haut
-  for (int i(0) ; i < _Nx ; ++i)
-    {
-      _sourceTerm[i] += D * g(_xmin + i * _dx, _ymin, t) / pow(_dy, 2);
-      _sourceTerm[i + (_Ny-1) * _Nx] += D * g(_xmin + i * _dx, _ymax, t) / pow(_dy, 2);
-    }
-  // Droite et gauche
-  for (int j(0) ; j < _Ny ; ++j)
-    {
-      _sourceTerm[j * _Nx] += D * h(_xmin, _ymin + j * _dy, t) / pow(_dx, 2);
-      _sourceTerm[_Nx - 1 + j * _Nx] += D * h(_xmax, _ymin + j * _dy, t) / pow(_dx, 2);
+      // Bord haut
+      else if (j == _Ny - 1)
+        {
+          _sourceTerm[k - kBegin] += D * g(_xmin + i * _dx, _ymax, t) / pow(_dy, 2);
+        }
+      // Bord gauche
+      if (i == 0)
+        {
+          _sourceTerm[k - kBegin] += D * h(_xmin, _ymin + j * _dy, t) / pow(_dx, 2);
+        }
+      // Bord droit
+      else if (i == _Nx - 1)
+        {
+          _sourceTerm[k - kBegin] += D * h(_xmax, _ymin + j * _dy, t) / pow(_dx, 2);
+        }
     }
 }
 
@@ -144,13 +160,11 @@ double Function1::h(const double x, const double y, const double t)
 
 void Function1::buildExactSolution(double t)
 {
-  for (int i(0) ; i < _Nx ; ++i)
+  for (int k(kBegin) ; k <= kEnd ; ++k)
     {
-      for (int j(0) ; j < _Ny ; ++j)
-        {
-          double x(_xmin + i * _dx), y(_ymin + j * _dy);
-          _exactSol[i + j * _Nx] = x*(1-x)*y*(1-y);
-        }
+      int i(k%_Nx), j(k/_Nx);
+      double x(_xmin + i * _dx), y(_ymin + j * _dy);
+      _exactSol[k - kBegin] = x*(1-x)*y*(1-y);
     }
 }
 
@@ -185,13 +199,11 @@ double Function2::h(const double x, const double y, const double t)
 
 void Function2::buildExactSolution(double t)
 {
-  for (int i(0) ; i < _Nx ; ++i)
+  for (int k(kBegin) ; k <= kEnd ; ++k)
     {
-      for (int j(0) ; j < _Ny ; ++j)
-        {
-          double x(_xmin + i * _dx), y(_ymin + j * _dy);
-          _exactSol[i + j * _Nx] = sin(x) + cos(y);
-        }
+      int i(k%_Nx), j(k/_Nx);
+      double x(_xmin + i * _dx), y(_ymin + j * _dy);
+      _exactSol[k - kBegin] = sin(x) + cos(y);
     }
 }
 
@@ -226,5 +238,5 @@ double Function3::h(const double x, const double y, const double t)
 
 void Function3::buildExactSolution(double t)
 {
-  _exactSol.resize(_Nx * _Ny, 0.);
+  _exactSol.resize(localSize, 0.);
 }

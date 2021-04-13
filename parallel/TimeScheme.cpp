@@ -1,5 +1,6 @@
 #include "TimeScheme.h"
 #include "Vector.h"
+#include "MPIUtils.h"
 #include "DataFile.h"
 #include "Function.h"
 #include "Laplacian.h"
@@ -70,15 +71,18 @@ void TimeScheme::saveCurrentSolution(std::string &fileName) const
 void TimeScheme::solve()
 {
   // Logs de début
-  std::cout << "====================================================================================================" << std::endl;
-  std::cout << "Time loop..." << std::endl;
+  if (MPI_Rank == 0)
+    {
+      std::cout << "====================================================================================================" << std::endl;
+      std::cout << "Time loop..." << std::endl; 
+    }
 
   // Variables pratiques
   int n(0);
   int scenario(_DF->getScenario());
 
   // Sauvegarde la condition initiale
-  std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
+  std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(MPI_Rank) + "_" + std::to_string(n) + ".vtk");
   saveCurrentSolution(solFileName);
 
   // Démarrage du chrono
@@ -94,14 +98,16 @@ void TimeScheme::solve()
       if (n % _DF->getSaveFrequency() == 0)
         {
           // Save numerical solution
-          std::cout << "Saving solution at t = " << _currentTime << std::endl;
-          std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
+          if (MPI_Rank == 0)
+            std::cout << "Saving solution at t = " << _currentTime << std::endl;
+          std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(MPI_Rank) + "_" + std::to_string(n) + ".vtk");
           saveCurrentSolution(solFileName);
           // Save exact solution
           if (_DF->getScenario() == 1 || _DF->getScenario() == 2)
             {
-              std::cout << "Saving exact solution at t = " << _currentTime << std::endl;
-              std::string exactSolFileName(_resultsDir + "/solution_exacte_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
+              if (MPI_Rank == 0)
+                std::cout << "Saving exact solution at t = " << _currentTime << std::endl;
+              std::string exactSolFileName(_resultsDir + "/solution_exacte_scenario_" + std::to_string(scenario) + "_" + std::to_string(MPI_Rank) + "_" + std::to_string(n) + ".vtk");
               _function->saveCurrentExactSolution(exactSolFileName);
             }
         }
@@ -115,11 +121,15 @@ void TimeScheme::solve()
   if (_DF->getScenario() == 1 || _DF->getScenario() == 2)
     {
       double error(computeCurrentError());
-      std::cout << "L2 error = " << error << " at t = " << _currentTime << " for a time step dt = " << _timeStep << std::endl;
+      if (MPI_Rank == 0)
+        std::cout << "L2 error = " << error << " at t = " << _currentTime << " for a time step dt = " << _timeStep << std::endl;
     }
   // Logs de fin
-  std::cout << termcolor::green << "SUCCESS::TIMESCHEME : Time loop completed successfully in " << duration << " seconds !" << std::endl;
-  std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
+  if (MPI_Rank == 0)
+    {
+      std::cout << termcolor::green << "SUCCESS::TIMESCHEME : Time loop completed successfully in " << duration << " seconds !" << std::endl;
+      std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl; 
+    }
 }
 
 double TimeScheme::computeCurrentError()
@@ -127,7 +137,7 @@ double TimeScheme::computeCurrentError()
   double error(0.);
   DVector errorVec(_Sol - _function->getExactSolution());
   error = errorVec.dot(errorVec);
-  error = sqrt(_DF->getDx() * error);
+  error = sqrt(_DF->getDx() * _DF->getDy() * error);
   return error;
 }
 

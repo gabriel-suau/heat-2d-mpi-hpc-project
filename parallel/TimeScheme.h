@@ -1,6 +1,7 @@
 #ifndef TIME_SCHEME_H
 #define TIME_SCHEME_H
 
+#include "MPIUtils.h"
 #include "DataFile.h"
 #include "Function.h"
 #include "Laplacian.h"

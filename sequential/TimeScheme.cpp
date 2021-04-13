@@ -127,7 +127,7 @@ double TimeScheme::computeCurrentError()
   double error(0.);
   DVector errorVec(_Sol - _function->getExactSolution());
   error = errorVec.dot(errorVec);
-  error = sqrt(_DF->getDx() * error);
+  error = sqrt(_DF->getDx() * _DF->getDy() * error);
   return error;
 }
 

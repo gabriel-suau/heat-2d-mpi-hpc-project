@@ -12,7 +12,7 @@
 #       2 --> f = g = h = sin(x) + cos(y)
 #       3 --> f = exp(-(x-Lx/2)^2)*exp(-(y-Ly/2)^2)*cos(pi/2*t), g = 0, h = 1
 Scenario
-1
+2
 
 
 ##################################################
@@ -40,9 +40,9 @@ ymax
 
 # Nombre de noeuds de discrétisation pour chaque direction
 Nx
-201
+64
 Ny
-201
+64
 
 
 ##################################################
@@ -60,9 +60,9 @@ ImplicitEuler
 InitialTime
 0.
 FinalTime
-10
+1.
 TimeStep
-1
+0.01
 CFL
 0.9
 
@@ -73,7 +73,7 @@ CFL
 
 # Nombre d'itérations max
 MaxIterations
-300
+150
 
 # Tolerance pour le test d'arrêt
 Tolerance
@@ -98,4 +98,4 @@ results
 
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 SaveFrequency
-1
+20
