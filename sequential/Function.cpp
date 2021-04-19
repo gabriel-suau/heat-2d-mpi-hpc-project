@@ -63,21 +63,23 @@ void Function::buildSourceTerm(double t)
     {
       for (int j(0) ; j < _Ny ; ++j)
         {
-          _sourceTerm[i + j * _Nx] = f(_xmin + i * _dx, _ymin + j * _dy, t);
+          _sourceTerm[i + j * _Nx] = f(_xmin + (i+1) * _dx, _ymin + (j+1) * _dy, t);
         }
     }
   // Ajout des conditions aux limites
   // Bas et haut
   for (int i(0) ; i < _Nx ; ++i)
     {
-      _sourceTerm[i] += D * g(_xmin + i * _dx, _ymin, t) / pow(_dy, 2);
-      _sourceTerm[i + (_Ny-1) * _Nx] += D * g(_xmin + i * _dx, _ymax, t) / pow(_dy, 2);
+      double x(_xmin + (i+1) * _dx);
+      _sourceTerm[i] += D * g(x, _ymin, t) / pow(_dy, 2);
+      _sourceTerm[i + (_Ny-1) * _Nx] += D * g(x, _ymax, t) / pow(_dy, 2);
     }
   // Droite et gauche
   for (int j(0) ; j < _Ny ; ++j)
     {
-      _sourceTerm[j * _Nx] += D * h(_xmin, _ymin + j * _dy, t) / pow(_dx, 2);
-      _sourceTerm[_Nx - 1 + j * _Nx] += D * h(_xmax, _ymin + j * _dy, t) / pow(_dx, 2);
+      double y(_ymin + (j+1) * _dy);
+      _sourceTerm[j * _Nx] += D * h(_xmin, y, t) / pow(_dx, 2);
+      _sourceTerm[_Nx - 1 + j * _Nx] += D * h(_xmax, y, t) / pow(_dx, 2);
     }
 }
 
@@ -92,24 +94,33 @@ void Function::saveCurrentExactSolution(std::string &fileName) const
   double xmin(_DF->getxMin()), ymin(_DF->getyMin());
   double dx(_DF->getDx()), dy(_DF->getDy());
 
-  outputFile << "# vtk DataFile Version 3.0" << std::endl;
-  outputFile << "sol" << std::endl;
-  outputFile << "ASCII" << std::endl;
-  outputFile << "DATASET STRUCTURED_POINTS" << std::endl;
-  outputFile << "DIMENSIONS " << Nx << " " << Ny << " " << 1 << std::endl;
-  outputFile << "ORIGIN " << xmin << " " << ymin << " " << 0 << std::endl;
-  outputFile << "SPACING " << dx << " " << dy << " " << 1 << std::endl;;
-  outputFile << "POINT_DATA " << Nx*Ny << std::endl;
-  outputFile << "SCALARS sol float" << std::endl;
-  outputFile << "LOOKUP_TABLE default" << std::endl;
+  // outputFile << "# vtk DataFile Version 3.0" << std::endl;
+  // outputFile << "sol" << std::endl;
+  // outputFile << "ASCII" << std::endl;
+  // outputFile << "DATASET STRUCTURED_POINTS" << std::endl;
+  // outputFile << "DIMENSIONS " << Nx << " " << Ny << " " << 1 << std::endl;
+  // outputFile << "ORIGIN " << xmin << " " << ymin << " " << 0 << std::endl;
+  // outputFile << "SPACING " << dx << " " << dy << " " << 1 << std::endl;;
+  // outputFile << "POINT_DATA " << Nx*Ny << std::endl;
+  // outputFile << "SCALARS sol float" << std::endl;
+  // outputFile << "LOOKUP_TABLE default" << std::endl;
+
+  // for(int j=0; j<Ny; ++j)
+  //   {
+  //     for(int i=0; i<Nx; ++i)
+  //       {
+  //         outputFile << _exactSol[i+j*Nx] << " ";
+  //       }
+  //     outputFile << std::endl;
+  //   }
 
   for(int j=0; j<Ny; ++j)
     {
       for(int i=0; i<Nx; ++i)
         {
-          outputFile << _exactSol[i+j*Nx] << " ";
+          double x(xmin + (i+1) * dx), y(ymin + (j+1) * dy);
+          outputFile << x << " " << y << " " << _exactSol[i+j*Nx] << std::endl;
         }
-      outputFile << std::endl;
     }
 }
 
@@ -148,7 +159,7 @@ void Function1::buildExactSolution(double t)
     {
       for (int j(0) ; j < _Ny ; ++j)
         {
-          double x(_xmin + i * _dx), y(_ymin + j * _dy);
+          double x(_xmin + (i+1) * _dx), y(_ymin + (j+1) * _dy);
           _exactSol[i + j * _Nx] = x*(1-x)*y*(1-y);
         }
     }
@@ -189,7 +200,7 @@ void Function2::buildExactSolution(double t)
     {
       for (int j(0) ; j < _Ny ; ++j)
         {
-          double x(_xmin + i * _dx), y(_ymin + j * _dy);
+          double x(_xmin + (i+1) * _dx), y(_ymin + (j+1) * _dy);
           _exactSol[i + j * _Nx] = sin(x) + cos(y);
         }
     }

@@ -46,24 +46,33 @@ void TimeScheme::saveCurrentSolution(std::string &fileName) const
   double xmin(_DF->getxMin()), ymin(_DF->getyMin());
   double dx(_DF->getDx()), dy(_DF->getDy());
 
-  outputFile << "# vtk DataFile Version 3.0" << std::endl;
-  outputFile << "sol" << std::endl;
-  outputFile << "ASCII" << std::endl;
-  outputFile << "DATASET STRUCTURED_POINTS" << std::endl;
-  outputFile << "DIMENSIONS " << Nx << " " << Ny << " " << 1 << std::endl;
-  outputFile << "ORIGIN " << xmin << " " << ymin << " " << 0 << std::endl;
-  outputFile << "SPACING " << dx << " " << dy << " " << 1 << std::endl;;
-  outputFile << "POINT_DATA " << Nx*Ny << std::endl;
-  outputFile << "SCALARS sol float" << std::endl;
-  outputFile << "LOOKUP_TABLE default" << std::endl;
+  // outputFile << "# vtk DataFile Version 3.0" << std::endl;
+  // outputFile << "sol" << std::endl;
+  // outputFile << "ASCII" << std::endl;
+  // outputFile << "DATASET STRUCTURED_POINTS" << std::endl;
+  // outputFile << "DIMENSIONS " << Nx << " " << Ny << " " << 1 << std::endl;
+  // outputFile << "ORIGIN " << xmin << " " << ymin << " " << 0 << std::endl;
+  // outputFile << "SPACING " << dx << " " << dy << " " << 1 << std::endl;;
+  // outputFile << "POINT_DATA " << Nx*Ny << std::endl;
+  // outputFile << "SCALARS sol float" << std::endl;
+  // outputFile << "LOOKUP_TABLE default" << std::endl;
+
+  // for(int j=0; j<Ny; ++j)
+  //   {
+  //     for(int i=0; i<Nx; ++i)
+  //       {
+  //         outputFile << _Sol[i+j*Nx] << " ";
+  //       }
+  //     outputFile << std::endl;
+  //   }
 
   for(int j=0; j<Ny; ++j)
     {
       for(int i=0; i<Nx; ++i)
         {
-          outputFile << _Sol[i+j*Nx] << " ";
+          double x(xmin + (i+1) * dx), y(ymin + (j+1) * dy);
+          outputFile << x << " " << y << " " << _Sol[i+j*Nx] << std::endl;
         }
-      outputFile << std::endl;
     }
 }
 
@@ -95,13 +104,13 @@ void TimeScheme::solve()
         {
           // Save numerical solution
           std::cout << "Saving solution at t = " << _currentTime << std::endl;
-          std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
+          std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(n/_DF->getSaveFrequency()) + ".vtk");
           saveCurrentSolution(solFileName);
           // Save exact solution
           if (_DF->getScenario() == 1 || _DF->getScenario() == 2)
             {
               std::cout << "Saving exact solution at t = " << _currentTime << std::endl;
-              std::string exactSolFileName(_resultsDir + "/solution_exacte_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
+              std::string exactSolFileName(_resultsDir + "/solution_exacte_scenario_" + std::to_string(scenario) + "_" + std::to_string(n/_DF->getSaveFrequency()) + ".vtk");
               _function->saveCurrentExactSolution(exactSolFileName);
             }
         }

@@ -39,10 +39,11 @@ ymax
 1.
 
 # Nombre de noeuds de discrétisation pour chaque direction
+# On ne compte pas les noeuds de bords, donc Nx * Ny est le nb d'inconnues.
 Nx
-64
+150
 Ny
-64
+150
 
 
 ##################################################
@@ -60,11 +61,11 @@ ImplicitEuler
 InitialTime
 0.
 FinalTime
-1.
+1
 TimeStep
 0.01
 CFL
-0.9
+1.
 
 
 #############################################################################
@@ -98,4 +99,4 @@ results
 
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 SaveFrequency
-20
+50
