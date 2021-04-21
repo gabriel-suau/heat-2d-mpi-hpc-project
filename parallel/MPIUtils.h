@@ -1,9 +1,13 @@
 #ifndef MPI_UTILS_H
 #define MPI_UTILS_H
 
-extern int MPI_Size, MPI_Rank, kBegin, kEnd, localSize;
+#include <mpi.h>
 
-// Répartit la charge avec un désiquilibre de charge <= 1
+// Global MPI variables
+extern int MPI_Size, MPI_Rank, kBegin, kEnd, rowBegin, rowEnd, localSize, nbDomainRows;
+extern MPI_Status status;
+
+// Répartit la charge avec un désiquilibre de charge inferieur ou egal a 1
 inline void charge(int N, int Np, int me, int& iBegin, int& iEnd)
 {
   // Division entière

@@ -54,30 +54,79 @@ void Laplacian::Initialize()
 DVector Laplacian::matVecProd(const DVector& x)
 {
   // Vecteur resultat
-  DVector result(localSize);
+  DVector result;
+  DVector prev, next;
+  int size(x.size());
+  result.resize(size, 0.);
+  prev.resize(_Nx, 0.);
+  next.resize(_Nx, 0.);
+
+  if (MPI_Rank + 1 < MPI_Size)
+    {
+      MPI_Sendrecv(&x[size - _Nx], _Nx, MPI_DOUBLE, MPI_Rank + 1, 0,
+                   &next[0], _Nx, MPI_DOUBLE, MPI_Rank + 1, 1,
+                   MPI_COMM_WORLD, &status);
+    }
+  if (MPI_Rank - 1 >= 0)
+    {
+      MPI_Sendrecv(&x[0], _Nx, MPI_DOUBLE, MPI_Rank - 1, 1,
+                   &prev[0], _Nx, MPI_DOUBLE, MPI_Rank - 1, 0,
+                   MPI_COMM_WORLD, &status);
+    }
 
   // Boucle
-  for (int k(0) ; k < localSize ; ++k)
+  for (int k(0) ; k < size ; ++k)
     {
-      result[k] = _gamma * x[k];
-      if (k % _Nx != 0)
-        {
-          result[k] += _beta * x[k-1];
-        }
-      if (k % _Nx != _Nx-1)
-        {
-          result[k] += _beta * x[k+1];
-        }
-      if (k < _Nx * _Ny - _Nx)
-        {
-          result[k] += _alpha * x[k+_Nx];
-        }
-      if (k >= _Nx)
-        {
-          result[k] += _alpha*x[k-_Nx];
-        }
+      // Indices globaux
+      int kGlob(k + kBegin);
+      int i(k%_Nx), j(k/_Nx);
+      
+      // Termes diagonaux
+      result[k] += _gamma * x[k];
+
+      // Termes non diagonaux
+      if (j == 0)
+        result[k] += _alpha * prev[i];
+      else
+        result[k] += _alpha * x[k-_Nx];
+
+      if (i != 0)
+        result[k] += _beta * x[k-1];
+      if (i != _Nx - 1)
+        result[k] += _beta * x[k+1];
+
+      if (j == _Ny - 1)
+        result[k] += _alpha * next[i];
+      else
+        result[k] += _alpha * x[k+_Nx];
+      
+      // // Termes non diagonaux
+      // if (kGlob % _Nx != 0)
+      //   {
+      //     result[k] += _beta * x[k-1];
+      //   }
+      // if (kGlob % _Nx != _Nx - 1)
+      //   {
+      //     result[k] += _beta * x[k+1];
+      //   }
+      // if ((kGlob < _Nx * (_Ny - 1)) && (MPI_Rank != MPI_Size - 1) && (k >= size - _Nx - 1))
+      //   {
+      //     result[k] += _alpha * next[k%_Nx];
+      //   }
+      // else if ((kGlob < _Nx * (_Ny - 1)) && (k < size - _Nx))
+      //   {
+      //     result[k] += _alpha * x[k];
+      //   }
+      // if ((kGlob >= _Nx) && (MPI_Rank != 0))
+      //   {
+      //     result[k] += _alpha * prev[k%_Nx];
+      //   }
+      // else if (kGlob >= _Nx)
+      //   {
+      //     result[k] += _alpha * x[k];
+      //   }
     }
-  return result;
+    return result;
 }
 
 
@@ -87,22 +136,41 @@ DVector Laplacian::solveConjGrad(const DVector& b, const DVector& x0, double tol
   DVector x(x0);
   DVector res(b - this->matVecProd(x0));
   DVector p(res);
-  double beta(sqrt(res.dot(res)));
-  resFile << beta << std::endl;
+  // Compute initial global residual
+  double resDotRes(0.), partialResDotRes(res.dot(res));
+  MPI_Allreduce(&partialResDotRes, &resDotRes, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  double beta(sqrt(resDotRes));
+  if (MPI_Rank == 0)
+    resFile << beta << std::endl;
   
   // Itérations de la méthode
   int k(0);
   while ((beta > tolerance) && (k < maxIterations))
     {
+      // Produit matvec
       DVector z(this->matVecProd(p));
-      double alpha(res.dot(p)/z.dot(p));
+      // Dot products
+      double resDotP(0.), zDotP(0.);
+      double partialResDotP(res.dot(p)), partialZDotP(z.dot(p));
+      MPI_Allreduce(&partialResDotP, &resDotP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(&partialZDotP, &zDotP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+      // COmpute alpha
+      double alpha(resDotP/zDotP);
+      // Update the solution
       x = x + alpha * p;
+      // Update the residual
       res = res - alpha * z;
-      double gamma(res.dot(res)/pow(beta,2));
+      // Dot product
+      double resDotRes(0.), partialResDotRes(res.dot(res));
+      MPI_Allreduce(&partialResDotRes, &resDotRes, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+      // Compute gamma
+      double gamma(resDotRes/pow(beta,2));
+      // Update p
       p = res + gamma * p;
-      beta = sqrt(res.dot(res));
+      beta = sqrt(resDotRes);
       ++k;
-      resFile << beta << std::endl;
+      if (MPI_Rank == 0)
+        resFile << beta << std::endl;
     }
   // Logs
   if (MPI_Rank == 0)

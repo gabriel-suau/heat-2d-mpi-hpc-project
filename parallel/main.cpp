@@ -8,10 +8,11 @@
 
 #include <mpi.h>
 #include <iostream>
-#include <chrono>
+#include <cstdio>
 
 // Global MPI variables
-int MPI_Size, MPI_Rank, kBegin, kEnd, localSize;
+int MPI_Size, MPI_Rank, kBegin, kEnd, rowBegin, rowEnd, localSize, nbDomainRows;
+MPI_Status status;
 
 // Main function
 int main(int argc, char** argv)
@@ -63,12 +64,20 @@ int main(int argc, char** argv)
   DataFile* DF = new DataFile(argv[1]);
   DF->readDataFile();
   DF->printData();
-  
-  // Compute the load allocated to the proc
-  charge(DF->getNx() * DF->getNy(), MPI_Size, MPI_Rank, kBegin, kEnd);
-  localSize = kEnd - kBegin + 1;
 
-  
+
+  //----------------------------------------------------------------//
+  //---------------------Compute the load for each proc-------------//
+  //----------------------------------------------------------------//
+  // Compute the number of rows allocated to the proc (must be between 1 and Ny)
+  charge(DF->getNx(), MPI_Size, MPI_Rank, rowBegin, rowEnd);
+  nbDomainRows = rowEnd - rowBegin + 1;
+  // Local size allocated to the proc (must be between Nx and Nx*Ny)
+  kBegin = DF->getNx() * rowBegin;
+  kEnd = DF->getNx() * (rowEnd + 1) - 1;
+  localSize = DF->getNx() * nbDomainRows;
+
+  printf("kbeg = %d, kend = %d, localSize = %d\n", kBegin, kEnd, localSize);
   //-------------------------------------------------------------//
   //---------------------IC, BC, Source term---------------------//
   //-------------------------------------------------------------//
@@ -130,9 +139,12 @@ int main(int argc, char** argv)
   //-------------------------------------------------//
   //---------------------Solving---------------------//
   //-------------------------------------------------//
+  // All procs must have their local variables initialized
+  // before entering the time loop
+  MPI_Barrier(MPI_COMM_WORLD);
   TS->solve();
   
-  
+
   //---------------------------------------------------------//
   //---------------------Free the memory---------------------//
   //---------------------------------------------------------//

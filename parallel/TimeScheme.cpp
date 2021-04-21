@@ -47,24 +47,31 @@ void TimeScheme::saveCurrentSolution(std::string &fileName) const
   double xmin(_DF->getxMin()), ymin(_DF->getyMin());
   double dx(_DF->getDx()), dy(_DF->getDy());
 
-  outputFile << "# vtk DataFile Version 3.0" << std::endl;
-  outputFile << "sol" << std::endl;
-  outputFile << "ASCII" << std::endl;
-  outputFile << "DATASET STRUCTURED_POINTS" << std::endl;
-  outputFile << "DIMENSIONS " << Nx << " " << Ny << " " << 1 << std::endl;
-  outputFile << "ORIGIN " << xmin << " " << ymin << " " << 0 << std::endl;
-  outputFile << "SPACING " << dx << " " << dy << " " << 1 << std::endl;;
-  outputFile << "POINT_DATA " << Nx*Ny << std::endl;
-  outputFile << "SCALARS sol float" << std::endl;
-  outputFile << "LOOKUP_TABLE default" << std::endl;
+  // outputFile << "# vtk DataFile Version 3.0" << std::endl;
+  // outputFile << "sol" << std::endl;
+  // outputFile << "ASCII" << std::endl;
+  // outputFile << "DATASET STRUCTURED_POINTS" << std::endl;
+  // outputFile << "DIMENSIONS " << Nx << " " << Ny << " " << 1 << std::endl;
+  // outputFile << "ORIGIN " << xmin << " " << ymin << " " << 0 << std::endl;
+  // outputFile << "SPACING " << dx << " " << dy << " " << 1 << std::endl;;
+  // outputFile << "POINT_DATA " << Nx*Ny << std::endl;
+  // outputFile << "SCALARS sol float" << std::endl;
+  // outputFile << "LOOKUP_TABLE default" << std::endl;
 
-  for(int j=0; j<Ny; ++j)
+  // for(int j=0; j<Ny; ++j)
+  //   {
+  //     for(int i=0; i<Nx; ++i)
+  //       {
+  //         outputFile << _Sol[i+j*Nx] << " ";
+  //       }
+  //     outputFile << std::endl;
+  //   }
+
+  for (int k(kBegin) ; k <= kEnd ; ++k)
     {
-      for(int i=0; i<Nx; ++i)
-        {
-          outputFile << _Sol[i+j*Nx] << " ";
-        }
-      outputFile << std::endl;
+      int j(k/Nx), i(k%Nx);
+      double x(xmin + (i+1) * dx), y(ymin + (j+1) * dy);
+      outputFile << x << " " << y << " " << _Sol[k - kBegin] << std::endl;
     }
 }
 
@@ -83,7 +90,10 @@ void TimeScheme::solve()
 
   // Sauvegarde la condition initiale
   std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(MPI_Rank) + "_" + std::to_string(n) + ".vtk");
+  std::string exactSolFileName(_resultsDir + "/solution_exacte_scenario_" + std::to_string(scenario) + "_" + std::to_string(MPI_Rank) + "_" + std::to_string(n) + ".vtk");
   saveCurrentSolution(solFileName);
+  _function->buildExactSolution(_currentTime);
+ _function->saveCurrentExactSolution(exactSolFileName);
 
   // Démarrage du chrono
   auto start = std::chrono::high_resolution_clock::now();
@@ -92,22 +102,22 @@ void TimeScheme::solve()
   while (_currentTime < _finalTime)
     {
       oneStep();
-      _function->buildExactSolution(_currentTime);
       ++n;
       _currentTime += _timeStep;
+      _function->buildExactSolution(_currentTime);
       if (n % _DF->getSaveFrequency() == 0)
         {
           // Save numerical solution
           if (MPI_Rank == 0)
             std::cout << "Saving solution at t = " << _currentTime << std::endl;
-          std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(MPI_Rank) + "_" + std::to_string(n) + ".vtk");
+          std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(MPI_Rank) + "_" + std::to_string(n/_DF->getSaveFrequency()) + ".vtk");
           saveCurrentSolution(solFileName);
           // Save exact solution
           if (_DF->getScenario() == 1 || _DF->getScenario() == 2)
             {
               if (MPI_Rank == 0)
                 std::cout << "Saving exact solution at t = " << _currentTime << std::endl;
-              std::string exactSolFileName(_resultsDir + "/solution_exacte_scenario_" + std::to_string(scenario) + "_" + std::to_string(MPI_Rank) + "_" + std::to_string(n) + ".vtk");
+              std::string exactSolFileName(_resultsDir + "/solution_exacte_scenario_" + std::to_string(scenario) + "_" + std::to_string(MPI_Rank) + "_" + std::to_string(n/_DF->getSaveFrequency()) + ".vtk");
               _function->saveCurrentExactSolution(exactSolFileName);
             }
         }
@@ -134,9 +144,10 @@ void TimeScheme::solve()
 
 double TimeScheme::computeCurrentError()
 {
-  double error(0.);
+  double error(0.), localError;
   DVector errorVec(_Sol - _function->getExactSolution());
-  error = errorVec.dot(errorVec);
+  localError = errorVec.dot(errorVec);
+  MPI_Allreduce(&localError, &error, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
   error = sqrt(_DF->getDx() * _DF->getDy() * error);
   return error;
 }
@@ -172,7 +183,7 @@ void ExplicitEuler::oneStep()
   // Récupération des trucs importants
   double dt(_timeStep);
   // Calcul du terme source
-  _function->buildSourceTerm(_currentTime);
+  _function->buildSourceTerm(_currentTime + dt);
   // Calcul de la solution
   _Sol = _Sol + (_laplacian->matVecProd(_Sol) + dt * _function->getSourceTerm());
 }

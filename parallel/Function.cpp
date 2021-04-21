@@ -72,27 +72,28 @@ void Function::buildSourceTerm(double t)
     {
       // Intérieur du domaine
       int i(k%_Nx), j(k/_Nx);
-      _sourceTerm[k - kBegin] = f(_xmin + i * _dx, _ymin + j * _dy, t);
+      double x(_xmin + (i+1) * _dx), y(_ymin + (j+1) * _dy);
+      _sourceTerm[k - kBegin] = f(x, y, t);
       // Conditions aux limites
       // Bord bas
       if (j == 0)
         {
-          _sourceTerm[k - kBegin] += D * g(_xmin + i * _dx, _ymin, t) / pow(_dy, 2);
+          _sourceTerm[k - kBegin] += D * g(x, _ymin, t) / pow(_dy, 2);
         }
       // Bord haut
       else if (j == _Ny - 1)
         {
-          _sourceTerm[k - kBegin] += D * g(_xmin + i * _dx, _ymax, t) / pow(_dy, 2);
+          _sourceTerm[k - kBegin] += D * g(x, _ymax, t) / pow(_dy, 2);
         }
       // Bord gauche
       if (i == 0)
         {
-          _sourceTerm[k - kBegin] += D * h(_xmin, _ymin + j * _dy, t) / pow(_dx, 2);
+          _sourceTerm[k - kBegin] += D * h(_xmin, y, t) / pow(_dx, 2);
         }
       // Bord droit
       else if (i == _Nx - 1)
         {
-          _sourceTerm[k - kBegin] += D * h(_xmax, _ymin + j * _dy, t) / pow(_dx, 2);
+          _sourceTerm[k - kBegin] += D * h(_xmax, y, t) / pow(_dx, 2);
         }
     }
 }
@@ -103,29 +104,11 @@ void Function::saveCurrentExactSolution(std::string &fileName) const
   std::ofstream outputFile(fileName, std::ios::out);
   outputFile.precision(10);
 
-  // Récupération des variables utiles
-  int Nx(_DF->getNx()), Ny(_DF->getNy());
-  double xmin(_DF->getxMin()), ymin(_DF->getyMin());
-  double dx(_DF->getDx()), dy(_DF->getDy());
-
-  outputFile << "# vtk DataFile Version 3.0" << std::endl;
-  outputFile << "sol" << std::endl;
-  outputFile << "ASCII" << std::endl;
-  outputFile << "DATASET STRUCTURED_POINTS" << std::endl;
-  outputFile << "DIMENSIONS " << Nx << " " << Ny << " " << 1 << std::endl;
-  outputFile << "ORIGIN " << xmin << " " << ymin << " " << 0 << std::endl;
-  outputFile << "SPACING " << dx << " " << dy << " " << 1 << std::endl;;
-  outputFile << "POINT_DATA " << Nx*Ny << std::endl;
-  outputFile << "SCALARS sol float" << std::endl;
-  outputFile << "LOOKUP_TABLE default" << std::endl;
-
-  for(int j=0; j<Ny; ++j)
+  for (int k(kBegin) ; k <= kEnd ; ++k)
     {
-      for(int i=0; i<Nx; ++i)
-        {
-          outputFile << _exactSol[i+j*Nx] << " ";
-        }
-      outputFile << std::endl;
+      int j(k/_Nx), i(k%_Nx);
+      double x(_xmin + (i+1) * _dx), y(_ymin + (j+1) * _dy);
+      outputFile << x << " " << y << " " << _exactSol[k - kBegin] << std::endl;
     }
 }
 
@@ -163,7 +146,7 @@ void Function1::buildExactSolution(double t)
   for (int k(kBegin) ; k <= kEnd ; ++k)
     {
       int i(k%_Nx), j(k/_Nx);
-      double x(_xmin + i * _dx), y(_ymin + j * _dy);
+      double x(_xmin + (i+1) * _dx), y(_ymin + (j+1) * _dy);
       _exactSol[k - kBegin] = x*(1-x)*y*(1-y);
     }
 }
@@ -202,7 +185,7 @@ void Function2::buildExactSolution(double t)
   for (int k(kBegin) ; k <= kEnd ; ++k)
     {
       int i(k%_Nx), j(k/_Nx);
-      double x(_xmin + i * _dx), y(_ymin + j * _dy);
+      double x(_xmin + (i+1) * _dx), y(_ymin + (j+1) * _dy);
       _exactSol[k - kBegin] = sin(x) + cos(y);
     }
 }
