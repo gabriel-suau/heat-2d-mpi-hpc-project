@@ -63,7 +63,8 @@ void Function::buildSourceTerm(double t)
     {
       for (int j(0) ; j < _Ny ; ++j)
         {
-          _sourceTerm[i + j * _Nx] = f(_xmin + (i+1) * _dx, _ymin + (j+1) * _dy, t);
+          double x(_xmin + (i+1) * _dx), y(_ymin + (j+1) * _dy);
+          _sourceTerm[i + j * _Nx] = f(x, y, t);
         }
     }
   // Ajout des conditions aux limites
@@ -89,37 +90,32 @@ void Function::saveCurrentExactSolution(std::string &fileName) const
   std::ofstream outputFile(fileName, std::ios::out);
   outputFile.precision(10);
 
-  // Récupération des variables utiles
-  int Nx(_DF->getNx()), Ny(_DF->getNy());
-  double xmin(_DF->getxMin()), ymin(_DF->getyMin());
-  double dx(_DF->getDx()), dy(_DF->getDy());
-
   // outputFile << "# vtk DataFile Version 3.0" << std::endl;
   // outputFile << "sol" << std::endl;
   // outputFile << "ASCII" << std::endl;
   // outputFile << "DATASET STRUCTURED_POINTS" << std::endl;
-  // outputFile << "DIMENSIONS " << Nx << " " << Ny << " " << 1 << std::endl;
-  // outputFile << "ORIGIN " << xmin << " " << ymin << " " << 0 << std::endl;
-  // outputFile << "SPACING " << dx << " " << dy << " " << 1 << std::endl;;
-  // outputFile << "POINT_DATA " << Nx*Ny << std::endl;
+  // outputFile << "DIMENSIONS " << _Nx << " " << _Ny << " " << 1 << std::endl;
+  // outputFile << "ORIGIN " << _xmin << " " << _ymin << " " << 0 << std::endl;
+  // outputFile << "SPACING " << _dx << " " << _dy << " " << 1 << std::endl;;
+  // outputFile << "POINT_DATA " << _Nx*_Ny << std::endl;
   // outputFile << "SCALARS sol float" << std::endl;
   // outputFile << "LOOKUP_TABLE default" << std::endl;
 
-  // for(int j=0; j<Ny; ++j)
+  // for(int j=0; j<_Ny; ++j)
   //   {
-  //     for(int i=0; i<Nx; ++i)
+  //     for(int i=0; i<_Nx; ++i)
   //       {
-  //         outputFile << _exactSol[i+j*Nx] << " ";
+  //         outputFile << _exactSol[i+j*_Nx] << " ";
   //       }
   //     outputFile << std::endl;
   //   }
 
-  for(int j=0; j<Ny; ++j)
+  for(int j=0; j<_Ny; ++j)
     {
-      for(int i=0; i<Nx; ++i)
+      for(int i=0; i<_Nx; ++i)
         {
-          double x(xmin + (i+1) * dx), y(ymin + (j+1) * dy);
-          outputFile << x << " " << y << " " << _exactSol[i+j*Nx] << std::endl;
+          double x(_xmin + (i+1) * _dx), y(_ymin + (j+1) * _dy);
+          outputFile << x << " " << y << " " << _exactSol[i+j*_Nx] << std::endl;
         }
     }
 }

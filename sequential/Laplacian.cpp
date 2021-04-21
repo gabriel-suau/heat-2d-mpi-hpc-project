@@ -52,16 +52,18 @@ void Laplacian::Initialize()
 DVector Laplacian::matVecProd(const DVector& x)
 {
   // Vecteur resultat
-  DVector result(x);
+  DVector result;
+  int size(x.size());
+  result.resize(size, 0.);
 
-  for (int i(0) ; i < x.size() ; ++i)
+  for (int i(0) ; i < size ; ++i)
     {
       result[i] = _gamma * x[i];
       if (i % _Nx != 0)
         {
           result[i] += _beta * x[i-1];
         }
-      if (i % _Nx != _Nx-1)
+      if (i % _Nx != _Nx - 1)
         {
           result[i] += _beta * x[i+1];
         }

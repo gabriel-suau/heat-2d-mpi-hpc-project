@@ -81,15 +81,18 @@ void TimeScheme::solve()
   // Logs de début
   std::cout << "====================================================================================================" << std::endl;
   std::cout << "Time loop..." << std::endl;
-
+  
   // Variables pratiques
   int n(0);
   int scenario(_DF->getScenario());
 
   // Sauvegarde la condition initiale
   std::string solFileName(_resultsDir + "/solution_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
+  std::string exactSolFileName(_resultsDir + "/solution_exacte_scenario_" + std::to_string(scenario) + "_" + std::to_string(n) + ".vtk");
   saveCurrentSolution(solFileName);
-
+  _function->buildExactSolution(_currentTime);
+  _function->saveCurrentExactSolution(exactSolFileName);
+             
   // Démarrage du chrono
   auto start = std::chrono::high_resolution_clock::now();
 
@@ -97,9 +100,9 @@ void TimeScheme::solve()
   while (_currentTime < _finalTime)
     {
       oneStep();
-      _function->buildExactSolution(_currentTime);
       ++n;
       _currentTime += _timeStep;
+      _function->buildExactSolution(_currentTime);
       if (n % _DF->getSaveFrequency() == 0)
         {
           // Save numerical solution
@@ -171,7 +174,7 @@ void ExplicitEuler::oneStep()
   // Récupération des trucs importants
   double dt(_timeStep);
   // Calcul du terme source
-  _function->buildSourceTerm(_currentTime);
+  _function->buildSourceTerm(_currentTime + dt);
   // Calcul de la solution
   _Sol = _Sol + (_laplacian->matVecProd(_Sol) + dt * _function->getSourceTerm());
 }
