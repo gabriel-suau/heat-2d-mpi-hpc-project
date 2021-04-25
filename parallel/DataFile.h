@@ -10,10 +10,12 @@ private:
   // Name of the data file
   std::string _fileName;
 
-  // Directory in which the results are saved
+  // Solution saving
   std::string _resultsDir;
+  bool _isSaveFinalResultOnly;
+  int _saveFrequency;
 
-  // Initial condition
+  // Scenario
   int _scenario;
   
   // Time parameters
@@ -37,9 +39,6 @@ private:
   
   // Diffusion coefficient
   double _diffCoeff;
-
-  // Frequency at which results are saved
-  int _saveFrequency;
   
 public:
   DataFile();
@@ -54,14 +53,20 @@ public:
   std::string cleanLine(std::string &line);
 
   // Getters
+  // DataFile name
   const std::string& getFileName() const {return _fileName;};
+  // Solution saving
   const std::string& getResultsDirectory() const {return _resultsDir;};
+  bool isSaveFinalResultOnly() const {return _isSaveFinalResultOnly;};
+  int getSaveFrequency() const {return _saveFrequency;};
   int getScenario() const {return _scenario;};
+  // Time parameters
   const std::string& getTimeScheme() const {return _timeScheme;};
   double getInitialTime() const {return _initialTime;};
   double getFinalTime() const {return _finalTime;};
   double getTimeStep() const {return _timeStep;};
   double getCFL() const {return _CFL;};
+  // Mesh parameters
   double getxMin() const {return _xmin;};
   double getxMax() const {return _xmax;}
   double getyMin() const {return _ymin;};
@@ -72,12 +77,13 @@ public:
   int getNy() const {return _Ny;};
   double getDx() const {return _dx;}
   double getDy() const {return _dy;};
+  // Linear solver parameters
   int getMaxIterations() const {return _maxIterations;};
   double getTolerance() const {return _tolerance;};
   bool isSaveResidual() const {return _isSaveResidual;}
   std::string getResFile() const {return _resFile;};
+  // Diffusion coefficient
   double getDiffCoeff() const {return _diffCoeff;};
-  int getSaveFrequency() const {return _saveFrequency;};
 
   // Print the parameters
   void printData() const;

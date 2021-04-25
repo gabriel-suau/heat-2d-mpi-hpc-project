@@ -7,7 +7,7 @@
 ###                   Scénario                 ###
 ##################################################
 
-# Choix de la condition initiale. Choix possibles
+# Choix du terme source et des CL. Choix possibles
 #       1 --> f = 2(y-y^2+x-x^2), g = 0, h = 0
 #       2 --> f = g = h = sin(x) + cos(y)
 #       3 --> f = exp(-(x-Lx/2)^2)*exp(-(y-Ly/2)^2)*cos(pi/2*t), g = 0, h = 1
@@ -41,9 +41,9 @@ ymax
 # Nombre de noeuds de discrétisation pour chaque direction
 # On ne compte pas les noeuds de bords, donc Nx * Ny est le nb d'inconnues.
 Nx
-39
+80
 Ny
-39
+80
 
 
 ##################################################
@@ -61,11 +61,11 @@ ImplicitEuler
 InitialTime
 0.
 FinalTime
-5e-1
+10.
 TimeStep
-0.01
+1e-3
 CFL
-0.5
+0.8
 
 
 #############################################################################
@@ -78,7 +78,7 @@ MaxIterations
 
 # Tolerance pour le test d'arrêt
 Tolerance
-1e-5
+1e-7
 
 # Sauvegarde de la norme des résidus dans un fichier
 IsSaveResidual
@@ -97,6 +97,11 @@ norme_residus.dat
 ResultsDir
 results
 
+# Sauvegarder uniquement le résultat à t=FinalTime
+SaveFinalResultOnly
+0
+
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
+# Ignoré si SaveFinalResultOnly vaut 1
 SaveFrequency
-50
+500

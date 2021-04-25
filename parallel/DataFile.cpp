@@ -50,8 +50,9 @@ void DataFile::readDataFile()
           std::cout << termcolor::red << "ERROR::DATAFILE : Unable to open file " << _fileName << std::endl;
           std::cout << termcolor::reset; 
         }
-      exit(-1);
+      MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
+#if VERBOSITY>0
   else
     {
       if (MPI_Rank == 0)
@@ -60,6 +61,8 @@ void DataFile::readDataFile()
           std::cout << "Reading data file " << _fileName << std::endl; 
         }
     }
+#endif
+  
   // Pour stocker chaque ligne
   std::string line;
   // Run through the dataFile to find the parameters
@@ -71,9 +74,37 @@ void DataFile::readDataFile()
         {
           dataFile >> _scenario;
         }
-      if (proper_line.find("DiffusionCoefficient") != std::string::npos)
+      if (proper_line.find("ResultsDir") != std::string::npos)
         {
-          dataFile >> _diffCoeff;
+          dataFile >> _resultsDir;
+        }
+      if (proper_line.find("IsSaveFinalResultOnly") != std::string::npos)
+        {
+          dataFile >> _resultsDir;
+        }
+      if (proper_line.find("SaveFrequency") != std::string::npos)
+        {
+          dataFile >> _saveFrequency;
+        }
+      if (proper_line.find("TimeScheme") != std::string::npos)
+        {
+          dataFile >> _timeScheme;
+        }
+      if (proper_line.find("InitialTime") != std::string::npos)
+        {
+          dataFile >> _initialTime;
+        }
+      if (proper_line.find("FinalTime") != std::string::npos)
+        {
+          dataFile >> _finalTime;
+        }
+      if (proper_line.find("TimeStep") != std::string::npos)
+        {
+          dataFile >> _timeStep;
+        }
+      if (proper_line.find("CFL") != std::string::npos)
+        {
+          dataFile >> _CFL;
         }
       if (proper_line.find("xmin") != std::string::npos)
         {
@@ -99,26 +130,6 @@ void DataFile::readDataFile()
         {
           dataFile >> _Ny;
         }
-      if (proper_line.find("TimeScheme") != std::string::npos)
-        {
-          dataFile >> _timeScheme;
-        }
-      if (proper_line.find("InitialTime") != std::string::npos)
-        {
-          dataFile >> _initialTime;
-        }
-      if (proper_line.find("FinalTime") != std::string::npos)
-        {
-          dataFile >> _finalTime;
-        }
-      if (proper_line.find("TimeStep") != std::string::npos)
-        {
-          dataFile >> _timeStep;
-        }
-      if (proper_line.find("CFL") != std::string::npos)
-        {
-          dataFile >> _CFL;
-        }
       if (proper_line.find("MaxIterations") != std::string::npos)
         {
           dataFile >> _maxIterations;
@@ -135,13 +146,9 @@ void DataFile::readDataFile()
         {
           dataFile >> _resFile;
         }
-      if (proper_line.find("ResultsDir") != std::string::npos)
+      if (proper_line.find("DiffusionCoefficient") != std::string::npos)
         {
-          dataFile >> _resultsDir;
-        }
-      if (proper_line.find("SaveFrequency") != std::string::npos)
-        {
-          dataFile >> _saveFrequency;
+          dataFile >> _diffCoeff;
         }
     }
 
@@ -154,34 +161,47 @@ void DataFile::readDataFile()
   // Calcul du pas de temps pour Euler Explicite
   if (_timeScheme == "ExplicitEuler")
     {
+#if VERBOSITY>0
       if (MPI_Rank == 0)
         {
           std::cout << termcolor::yellow << "Adjusting the time step to fit the CFL condition" << std::endl;
           std::cout << termcolor::reset; 
         }
+#endif
       _timeStep = _CFL * (pow(_dx,2) * pow(_dy,2)) / (2. * _diffCoeff * (pow(_dx,2) + pow(_dy,2)));
     }
 
   // Calcul du nombre d'iterations en temps et ajustement du pas de temps
+#if VERBOSITY>0
   if (MPI_Rank == 0)
     {
       std::cout << termcolor::yellow << "Adjusting the time step to land exactly on the final time" << std::endl;
       std::cout << termcolor::reset; 
     }
+#endif
+  
   int nbIterations(int(ceil((_finalTime - _initialTime)/_timeStep)));
   _timeStep = (_finalTime - _initialTime)/nbIterations;
+
+#if VERBOSITY>0
   if (MPI_Rank == 0)
     std::cout << "The new time step is dt = " << _timeStep << std::endl;
-
+#endif
+  
   // Création et nettoyage du dossier de résultats
   if (MPI_Rank == 0)
     {
+      
+#if VERBOSITY>0
       std::cout << "Creating the results directory..." << std::endl;
+#endif
+      
       system(("mkdir -p ./" + _resultsDir).c_str());
       system(("rm -f ./" + _resultsDir + "/solution*").c_str());
       system(("rm -f ./" + _resultsDir + "/" + _resFile).c_str());
-      system(("cp -r ./" + _fileName + " ./" + _resultsDir + "/params.txt").c_str()); 
-
+      system(("cp -r ./" + _fileName + " ./" + _resultsDir + "/params.txt").c_str());
+      
+#if VERBOSITY>0
       // Logs
       std::cout << termcolor::green << "SUCCESS::DATAFILE : Results directory created successfully !" << std::endl;
       std::cout << termcolor::reset;
@@ -189,6 +209,7 @@ void DataFile::readDataFile()
       // Logs de succès
       std::cout << termcolor::green << "SUCCESS::DATAFILE : File read successfully" << std::endl;
       std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl;
+#endif
     }
 }
 
@@ -196,6 +217,7 @@ void DataFile::readDataFile()
 // Affiche les paramètres sur le terminal
 void DataFile::printData() const
 {
+#if VERBOSITY>0
   if (MPI_Rank == 0)
     {
       std::cout << "====================================================================================================" << std::endl;
@@ -228,12 +250,13 @@ void DataFile::printData() const
           std::cout << "    |Tolerance        = " << _tolerance << std::endl;
           std::cout << "    |Save residual ?  = " << _isSaveResidual << std::endl;
           if (_isSaveResidual)
-            {
-              std::cout << "    |Residual File    = " << _resFile << std::endl; 
-            }
+            std::cout << "    |Residual File    = " << _resFile << std::endl; 
         }
       std::cout << "Results directory     = " << _resultsDir << std::endl;
-      std::cout << "Save Frequency        = " << _saveFrequency << std::endl;
+      std::cout << "Save final time only? = " << _isSaveFinalResultOnly << std::endl;
+      if (_isSaveFinalResultOnly)
+        std::cout << "Save Frequency        = " << _saveFrequency << std::endl;
       std::cout << "====================================================================================================" << std::endl << std::endl; 
     }
+#endif
 }

@@ -44,6 +44,9 @@ public:
   // Sauvegarde de la solution exacte
   void saveCurrentExactSolution(std::string& fileName) const;
 
+  // Sauvegarde du terme source (debug)
+  void saveSourceTerm(std::string& fileName) const;
+  
   // Getters
   const DVector& getInitialCondition() const {return _Sol0;};
   const DVector& getSourceTerm() const {return _sourceTerm;};

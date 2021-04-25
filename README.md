@@ -15,5 +15,5 @@ All developpers are students at ENSEIRB-MATMECA, a french engineering school loc
 
 ## Check-list
 - [x] Make a working sequential version of the code (time integration : Explicit Euler, Implicit Euler)
-- [ ] Parallelize the linear solver (Conjugate Gradient)
+- [x] Parallelize the linear solver (Conjugate Gradient)
 - [ ] Automatize convergence/scalability tests with Bash/Python scripts

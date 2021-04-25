@@ -50,6 +50,16 @@ double DVector::dot(const DVector& vec)
 }
 
 
+void DVector::print() const
+{
+  for (int i(0) ; i < this->size() ; ++i)
+    {
+      std::cout << this->operator[](i) << " ";
+    }
+  std::cout << std::endl << std::endl;
+}
+
+
 // Operators
 std::ostream& operator<< (std::ostream &os, const DVector& v)
 {

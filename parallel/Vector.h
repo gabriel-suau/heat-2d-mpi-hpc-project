@@ -16,6 +16,9 @@ public:
   DVector add(const DVector& vec);
   DVector sub(const DVector& vec);
   double dot(const DVector& vec);
+
+  // Print the vector (for debugging purpose)
+  void print() const;
 };
 
 std::ostream& operator<< (std::ostream &os, const DVector& v);

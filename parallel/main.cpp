@@ -8,7 +8,6 @@
 
 #include <mpi.h>
 #include <iostream>
-#include <cstdio>
 
 // Global MPI variables
 int MPI_Size, MPI_Rank, kBegin, kEnd, rowBegin, rowEnd, localSize, nbDomainRows;
@@ -35,7 +34,7 @@ int main(int argc, char** argv)
           std::cout << termcolor::red << "ERROR::MAIN : Please, enter the name of your data file." << std::endl;
           std::cout << termcolor::reset;
         }
-      exit(1);
+      MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
   else if (argc > 2)
     {
@@ -50,12 +49,14 @@ int main(int argc, char** argv)
   //--------------------------------------------------------//
   //---------------------Beginning logs---------------------//
   //--------------------------------------------------------//
+#if VERBOSITY>0
   if (MPI_Rank == 0)
     {
       std::cout << "====================================================================================================" << std::endl;
       std::cout << "Solving 2D heat equation for you !" << std::endl;
       std::cout << "====================================================================================================" << std::endl << std::endl; 
     }
+#endif
 
   
   //--------------------------------------------------------//
@@ -63,8 +64,9 @@ int main(int argc, char** argv)
   //--------------------------------------------------------//
   DataFile* DF = new DataFile(argv[1]);
   DF->readDataFile();
+#if VERBOSITY>0
   DF->printData();
-
+#endif
 
   //----------------------------------------------------------------//
   //---------------------Compute the load for each proc-------------//
@@ -77,7 +79,7 @@ int main(int argc, char** argv)
   kEnd = DF->getNx() * (rowEnd + 1) - 1;
   localSize = DF->getNx() * nbDomainRows;
 
-  printf("kbeg = %d, kend = %d, localSize = %d\n", kBegin, kEnd, localSize);
+
   //-------------------------------------------------------------//
   //---------------------IC, BC, Source term---------------------//
   //-------------------------------------------------------------//
@@ -101,6 +103,7 @@ int main(int argc, char** argv)
           std::cout << termcolor::red << "ERROR::FUNCTION : Scenario not implemented !" << std::endl;
           std::cout << termcolor::reset; 
         }
+      MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
       exit(1);
     }
   function->Initialize();
@@ -132,6 +135,7 @@ int main(int argc, char** argv)
           std::cout << termcolor::red << "ERROR::TIMESCHEME : Case not implemented." << std::endl;
           std::cout << termcolor::reset; 
         }
+      MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
       exit(1);
     }
   
@@ -139,9 +143,6 @@ int main(int argc, char** argv)
   //-------------------------------------------------//
   //---------------------Solving---------------------//
   //-------------------------------------------------//
-  // All procs must have their local variables initialized
-  // before entering the time loop
-  MPI_Barrier(MPI_COMM_WORLD);
   TS->solve();
   
 
@@ -157,6 +158,7 @@ int main(int argc, char** argv)
   //-----------------------------------------------------//
   //---------------------Ending logs---------------------//
   //-----------------------------------------------------//
+#if VERBOSITY>0
   if (MPI_Rank == 0)
     {
       std::cout << "====================================================================================================" << std::endl;
@@ -164,6 +166,7 @@ int main(int argc, char** argv)
       std::cout << termcolor::reset << "Let me terminate myself now..." << std::endl;
       std::cout << "====================================================================================================" << std::endl << std::endl; 
     }
+#endif
 
   
   //-------------------------------------------------------//
