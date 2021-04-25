@@ -1,3 +1,34 @@
+/*!
+ * @file DataFile.h
+ *
+ * @brief DataFile class to read the simulation parameters.
+ *
+ * This file contains a DataFile class that reads the parameters file
+ * and contains all the parameters of the simulation.
+ *
+ * @authors Gabriel Suau, Remi Pegouret, Geoffrey Lebaud
+ *
+ * @version 0.1.0
+ *
+ * @copyright © 2021 Gabriel Suau
+ * @copyright © 2021 Remi Pegouret
+ * @copyright © 2021 Geoffrey Lebaud
+ * 
+ * @copyright This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * @copyright This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * @copyright You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+
 #ifndef DATA_FILE_H
 #define DATA_FILE_H
 
@@ -7,7 +38,6 @@
 class DataFile
 {
 private:
-  // Name of the data file
   std::string _fileName;
 
   // Solution saving
@@ -41,6 +71,7 @@ private:
   double _diffCoeff;
   
 public:
+
   DataFile();
   DataFile(const std::string& fileName);
 
@@ -49,8 +80,6 @@ public:
   void Initialize(const std::string& fileName);
 
   void readDataFile();
-
-  std::string cleanLine(std::string &line);
 
   // Getters
   // DataFile name
@@ -85,8 +114,10 @@ public:
   // Diffusion coefficient
   double getDiffCoeff() const {return _diffCoeff;};
 
-  // Print the parameters
   void printData() const;
+
+protected:
+  std::string cleanLine(std::string &line);
 };
 
 #endif // DATA_FILE_H
