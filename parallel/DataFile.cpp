@@ -106,7 +106,7 @@ void DataFile::readDataFile()
         {
           dataFile >> _resultsDir;
         }
-      if (proper_line.find("IsSaveFinalResultOnly") != std::string::npos)
+      if (proper_line.find("SaveFinalResultOnly") != std::string::npos)
         {
           dataFile >> _isSaveFinalResultOnly;
         }
@@ -290,7 +290,7 @@ void DataFile::printData() const
         }
       std::cout << "Results directory     = " << _resultsDir << std::endl;
       std::cout << "Save final time only? = " << _isSaveFinalResultOnly << std::endl;
-      if (_isSaveFinalResultOnly)
+      if (!_isSaveFinalResultOnly)
         std::cout << "Save Frequency        = " << _saveFrequency << std::endl;
       std::cout << "====================================================================================================" << std::endl << std::endl; 
     }
