@@ -108,11 +108,15 @@ void DataFile::readDataFile()
         }
       if (proper_line.find("IsSaveFinalResultOnly") != std::string::npos)
         {
-          dataFile >> _resultsDir;
+          dataFile >> _isSaveFinalResultOnly;
         }
       if (proper_line.find("SaveFrequency") != std::string::npos)
         {
           dataFile >> _saveFrequency;
+        }
+      if (proper_line.find("ErrorAndCPUTimeDir") != std::string::npos)
+        {
+          dataFile >> _errorAndCPUTimeDir;
         }
       if (proper_line.find("TimeScheme") != std::string::npos)
         {
@@ -222,13 +226,17 @@ void DataFile::readDataFile()
       
 #if VERBOSITY>0
       std::cout << "Creating the results directory..." << std::endl;
+      std::cout << "Creating the error and cputime directory..." << std::endl;
 #endif
-      
+
+      // Results directory
       system(("mkdir -p ./" + _resultsDir).c_str());
       system(("rm -f ./" + _resultsDir + "/solution*").c_str());
       system(("rm -f ./" + _resultsDir + "/" + _resFile).c_str());
       system(("cp -r ./" + _fileName + " ./" + _resultsDir + "/params.txt").c_str());
-      
+      // Error and cputime directory
+      system(("mkdir -p ./" + _errorAndCPUTimeDir).c_str());
+
 #if VERBOSITY>0
       // Logs
       std::cout << termcolor::green << "SUCCESS::DATAFILE : Results directory created successfully !" << std::endl;

@@ -15,7 +15,7 @@ CXX_FLAGS = -std=c++11
 # 	0 = Beginning, error and ending logs (not verbose)
 # 	1 = All of the above + saving logs (more verbose)
 #	2 = All of the above + linear solver convergence logs (very verbose)
-VERBOSITY_LEVEL = 1
+VERBOSITY_LEVEL = 2
 
 CXX_FLAGS += -DVERBOSITY=$(VERBOSITY_LEVEL)
 

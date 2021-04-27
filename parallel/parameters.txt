@@ -61,7 +61,7 @@ ImplicitEuler
 InitialTime
 0.
 FinalTime
-10.
+0.5
 TimeStep
 1e-3
 CFL
@@ -74,7 +74,7 @@ CFL
 
 # Nombre d'itérations max
 MaxIterations
-150
+50
 
 # Tolerance pour le test d'arrêt
 Tolerance
@@ -99,9 +99,14 @@ results
 
 # Sauvegarder uniquement le résultat à t=FinalTime
 SaveFinalResultOnly
-0
+1
 
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 # Ignoré si SaveFinalResultOnly vaut 1
 SaveFrequency
 500
+
+# Repertoire ou socker le temps CPU et l'erreur
+# Utile pour les tests de convergence et de scalabilité
+ErrorAndCPUTimeDir
+time_and_error

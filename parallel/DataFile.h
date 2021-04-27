@@ -44,7 +44,8 @@ private:
   std::string _resultsDir;
   bool _isSaveFinalResultOnly;
   int _saveFrequency;
-
+  std::string _errorAndCPUTimeDir;
+  
   // Scenario
   int _scenario;
   
@@ -88,6 +89,8 @@ public:
   const std::string& getResultsDirectory() const {return _resultsDir;};
   bool isSaveFinalResultOnly() const {return _isSaveFinalResultOnly;};
   int getSaveFrequency() const {return _saveFrequency;};
+  const std::string& getErrorAndCPUTimeDir() const {return _errorAndCPUTimeDir;};
+  // Scenario
   int getScenario() const {return _scenario;};
   // Time parameters
   const std::string& getTimeScheme() const {return _timeScheme;};

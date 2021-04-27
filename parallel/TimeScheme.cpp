@@ -127,9 +127,17 @@ void TimeScheme::solve()
         }
     }
   
-  // Fin du chrono (on ne calcule que la duree de la boucle en temps)
+  // Calcul et sauvegarde du temps CPU
   auto finish = MPI_Wtime();
-  double duration = finish - start;
+  double cpuTime = finish - start;
+  if (MPI_Rank == 0)
+    {
+      std::string cputimeFileName(_DF->getErrorAndCPUTimeDir() + "/cputime.dat");
+      std::ofstream cputimeFile(cputimeFileName, std::ios::app);
+      cputimeFile.precision(10);
+      cputimeFile << MPI_Size << " " << _DF->getNx() << " " << _DF->getNy() << " " << _DF->getNx() * _DF->getNy() << " " << _DF->getDx() << " " << _DF->getDy() << " " <<_DF->getDx() * _DF->getDy() << " " << cpuTime << std::endl; 
+    }
+
 
   // Save final solution
   if (_DF->isSaveFinalResultOnly())
@@ -154,10 +162,17 @@ void TimeScheme::solve()
       _function->saveCurrentExactSolution(exactSolFileName);
     }
   
-  // Calcul de l'erreur pour les scenario 1 et 2
+  // Calcul et sauvegarde de l'erreur pour les scenario 1 et 2
   if (_DF->getScenario() == 1 || _DF->getScenario() == 2)
     {
       double error(computeCurrentError());
+      if (MPI_Rank == 0)
+        {
+          std::string errorFileName(_DF->getErrorAndCPUTimeDir() + "/error.dat");
+          std::ofstream errorFile(errorFileName, std::ios::app);
+          errorFile.precision(10);
+          errorFile << _DF->getNx() << " " << _DF->getNy() << " " << _DF->getNx() * _DF->getNy() << " " << _DF->getDx() << " " << _DF->getDy() << " " <<_DF->getDx() * _DF->getDy() << " " << error << std::endl; 
+        }
 #if VERBOSITY>0
       if (MPI_Rank == 0)
         std::cout << "L2 error = " << error << " at t = " << _currentTime << " for a time step dt = " << _timeStep << std::endl;
@@ -168,7 +183,7 @@ void TimeScheme::solve()
 #if VERBOSITY>0
   if (MPI_Rank == 0)
     {
-      std::cout << termcolor::green << "SUCCESS::TIMESCHEME : Time loop completed successfully in " << duration << " seconds !" << std::endl;
+      std::cout << termcolor::green << "SUCCESS::TIMESCHEME : Time loop completed successfully in " << cpuTime << " seconds !" << std::endl;
       std::cout << termcolor::reset << "====================================================================================================" << std::endl << std::endl; 
     }
 #endif
@@ -262,7 +277,7 @@ void ImplicitEuler::oneStep()
   int maxIt(_DF->getMaxIterations());
   // Ouverture du fichier pour les résidus
   std::ofstream resFile(_resFileName, std::ios::app);
-  resFile.precision(7);
+  resFile.precision(10);
   // Calcul du terme source
   _function->buildSourceTerm(_currentTime + dt);
   // Calcul de la solution

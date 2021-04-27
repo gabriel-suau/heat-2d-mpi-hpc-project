@@ -161,7 +161,7 @@ DVector Laplacian::solveConjGrad(const DVector& b, const DVector& x0, double tol
       double partialResDotP(res.dot(p)), partialZDotP(z.dot(p));
       MPI_Allreduce(&partialResDotP, &resDotP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
       MPI_Allreduce(&partialZDotP, &zDotP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-      // COmpute alpha
+      // Compute alpha
       double alpha(resDotP/zDotP);
       // Update the solution
       x = x + alpha * p;
