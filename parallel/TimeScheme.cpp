@@ -47,12 +47,25 @@ TimeScheme::TimeScheme()
 }
 
 
+/*!
+ * @param DF DataFile object.
+ * @param function Function object.
+ * @param laplacian Laplacian object.
+ */
 TimeScheme::TimeScheme(DataFile* DF, Function* function, Laplacian* laplacian):
   _DF(DF), _function(function), _laplacian(laplacian), _Sol(_function->getInitialCondition()), _timeStep(DF->getTimeStep()), _initialTime(DF->getInitialTime()), _finalTime(DF->getFinalTime()), _currentTime(_initialTime), _resultsDir(DF->getResultsDirectory()), _resFileName(_resultsDir + "/" + DF->getResFile())
 {
 }
 
 
+/*!
+ * @param DF DataFile object.
+ * @param function Function object.
+ * @param laplacian Laplacian object.
+ *
+ * @deprecated This method could be useful if we decided to construct an empty TimeScheme object.
+ * But we never use it in this code...
+ */
 void TimeScheme::Initialize(DataFile* DF, Function* function, Laplacian* laplacian)
 {
   _DF = DF;
@@ -68,6 +81,9 @@ void TimeScheme::Initialize(DataFile* DF, Function* function, Laplacian* laplaci
 }
 
 
+/*!
+ * @param fileName File in which the solution must be saved.
+ */
 void TimeScheme::saveCurrentSolution(std::string &fileName) const
 {
   std::ofstream outputFile(fileName, std::ios::out);
@@ -87,6 +103,9 @@ void TimeScheme::saveCurrentSolution(std::string &fileName) const
 }
 
 
+/*!
+ * @details Main function of the TimeScheme class. It performs the time iterations of the selected time integration methods until the final time is reached. It also saves the solution, and the residuals when they need to be saved.
+*/
 void TimeScheme::solve()
 {
   // Logs de début

@@ -1,3 +1,4 @@
+
 /*!
  * @file DataFile.cpp
  *
@@ -37,20 +38,38 @@
 #include <regex>
 #include <mpi.h>
 
+
 DataFile::DataFile()
 {
 }
+
 
 DataFile::DataFile(const std::string& fileName):
   _fileName(fileName)
 {
 }
 
+
+/*!
+ * @param [in] fileName The name of the data file from which to initialize the DataFile object.
+ *
+ * @deprecated This method could be useful if we decided to construct an empty DataFile object.
+ * But we never use it in this code...
+ */
 void DataFile::Initialize(const std::string& fileName)
 {
   _fileName = fileName;
 }
 
+
+/*!
+ * @details Removes everything after a possible #, replaces tabulation by spaces, 
+ * replaces multiple spaces by one space, removes any leading space.
+ *
+ * @param [in] line The line to clean.
+ *
+ * @return A std::string corresponding to the cleaned line.
+ */
 std::string DataFile::cleanLine(std::string &line)
 {
   std::string res = line;
@@ -67,6 +86,12 @@ std::string DataFile::cleanLine(std::string &line)
   return res;
 }
 
+
+/*!
+ * @details Main method of this class. It reads the data file fileName, and assign the values to the 
+ * parameters. It also performs checks to ensure the values entered by the user in the data file
+ * are correct.
+ */
 void DataFile::readDataFile()
 {
   // Open the data file

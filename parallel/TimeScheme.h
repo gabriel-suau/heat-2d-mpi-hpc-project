@@ -36,35 +36,45 @@
 #include "Vector.h"
 #include <string>
 
+/*!
+ * @class TimeScheme
+ *
+ * @brief Represents a time integrator.
+ *
+ * @details A TimeScheme object contains everything that is needed to perform the time integration of the solution.
+*/
 class TimeScheme
 {
 protected:
   // Pointeur vers les trucs importants
-  DataFile* _DF;
-  Function* _function;
-  Laplacian* _laplacian;
+  DataFile* _DF; ///< Pointer to a DataFile object.
+  Function* _function; ///< Pointer to a Function object.
+  Laplacian* _laplacian; ///< Pointer to a Laplacian object.
 
   // Solution
-  DVector _Sol;
+  DVector _Sol; ///< Solution vector. (updated at each time step)
   
   // Paramètres de temps
-  double _timeStep;
-  double _initialTime;
-  double _finalTime;
-  double _currentTime;
+  double _timeStep; ///< Time step of the simulation.
+  double _initialTime; ///< Initial time.
+  double _finalTime; ///< Final time.
+  double _currentTime; ///< Current time.
 
   // Sauvegarde des résultats
-  std::string _resultsDir;
-  std::string _resFileName;
+  std::string _resultsDir; ///< Directory in which the results are saved.
+  std::string _resFileName; ///< File in which the residuals of the Conjugate Gradient are saved.
   
 public:
-  // Constructeurs
+  /*! @brief Empty constructor. */
   TimeScheme();
+  
+  /*! @brief Constructs a TimeScheme object using a DataFile, a Function and a Laplacian objects. */
   TimeScheme(DataFile* DF, Function* function, Laplacian* laplacian);
 
-  // Initialiseur
+  /*! @brief Initializes a TimeScheme object using a DataFile, a Function and a Laplacian objects. */
   void Initialize(DataFile* DF, Function* function, Laplacian* laplacian);
-  // Destructeur
+
+  /*! @brief Default destructor. */
   virtual ~TimeScheme() = default;
 
   // Getters
@@ -74,15 +84,24 @@ public:
   double getFinalTime() const {return _finalTime;};
   double getCurrentTime() const {return _currentTime;};
   
-  // Solve and save solution
+  /*! @brief Performs one step of the selected time integration method and updates the solution (pure virtual). */
   virtual void oneStep() = 0;
+  
+  /*! @brief Saves the current solution in a file. */
   void saveCurrentSolution(std::string& fileName) const;
+  
+  /*! @brief Solves the problem. */
   void solve();
 
-  // Compute the L2 error norm
+  /*! @brief Computes the current L2 error using the current solution and the current exact solution (if it exists). */
   double computeCurrentError();
 };
 
+/*!
+ * @class ExplicitEuler
+ *
+ * @brief Represents the Explicit Euler time scheme.
+ */
 class ExplicitEuler: public TimeScheme
 {
 public:
@@ -97,7 +116,11 @@ public:
   void oneStep();
 };
 
-
+/*!
+ * @class ImplicitEuler
+ *
+ * @brief Represents the Implicit Euler time scheme.
+ */
 class ImplicitEuler: public TimeScheme
 {
 public:

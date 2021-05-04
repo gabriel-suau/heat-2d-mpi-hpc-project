@@ -34,59 +34,86 @@
 #include "termcolor.h"
 #include "Vector.h"
 
+/*!
+ * @class Function
+ *
+ * @brief Handles several important functions fo the problem.
+ *
+ * @details This class is used to compute the initial condition, the source term, the 
+ * exact solution of the problem if it exists, and to handle the boundary conditions.
+ */
 class Function
 {
 protected:
   // Pointeur vers le fichier de paramètres
-  DataFile* _DF;
+  DataFile* _DF; ///< Pointer to a DataFile object.
   
   // Variables utiles
-  double _xmin, _ymin, _xmax, _ymax, _Lx, _Ly, _dx, _dy;
-  int _Nx, _Ny;
+  double _xmin; ///< xmin
+  double _ymin; ///< ymin
+  double _xmax; ///< xmax
+  double _ymax; ///< ymax
+  double _Lx; ///< Length of the domain in the x direction
+  double _Ly; ///< Length of the domain in the y direction
+  double _dx; ///< Space step in the x direction
+  double _dy; ///< Space stepp in the y direction
+  int _Nx; ///< Number of nodes in the x direction
+  int _Ny; ///< Number of unknown in the y direction
 
   // Vecteur solution initiale
-  DVector _Sol0;
+  DVector _Sol0; ///< Initial condition.
   // Terme source
-  DVector _sourceTerm;
+  DVector _sourceTerm; ///< Source term.
   // Solution exacte
-  DVector _exactSol;
+  DVector _exactSol; ///< Exact solution.
   
 public:
-  // Constructeur
+  /*! @brief Constructs an empty Function object. */
   Function();
+  
+  /*! @brief Constructs a Function object using a DataFile object. */
   Function(DataFile* DF);
 
-  // Destructeur
+  /*! @brief Default destructor. */
   virtual ~Function() = default;
   
-  // Initialisation
+  /*! @brief Initializes an already constructed Function object. */
   void Initialize();
+  
+  /*! @brief Initializes an empty constructed Function object. */
   void Initialize(DataFile* DF);
 
-  // Construction du terme source
+  /*! @brief Builds the source term. */
   void buildSourceTerm(double t);
 
-  // Construction de la solution exacte
+  /*! @brief Builds the exact solution of the selected scenario if it exists (pure virtual). */
   virtual void buildExactSolution(double t) = 0;
   
-  // Sauvegarde de la solution exacte
+  /*! @brief Saves the current exact solution in a file. */
   void saveCurrentExactSolution(std::string& fileName) const;
 
-  // Sauvegarde du terme source (debug)
+  /*! @brief Saves the current source term in a file. */
   void saveSourceTerm(std::string& fileName) const;
-  
-  // Getters
+
   const DVector& getInitialCondition() const {return _Sol0;};
   const DVector& getSourceTerm() const {return _sourceTerm;};
   const DVector& getExactSolution() const {return _exactSol;};
   
-  // Pour construire les CI/CL en fonction du système
+  /*! @brief Evaluates the source term at point (x, y) at time t depending on the selected scenario (pure virtual). */
   virtual double f(const double x, const double y, const double t) = 0;
+  
+  /*! @brief Evaluates the Dirichlet left/right boundary condition at point (x, y) at time t depending on the selected scenario (pure virtual). */
   virtual double g(const double x, const double y, const double t) = 0;
+  
+  /*! @brief Evaluates the Dirichlet top/bottom boundary condition at point (x, y) at time t depending on the selected scenario (pure virtual). */
   virtual double h(const double x, const double y, const double t) = 0;
 };
 
-// Classe fille scenario 1
+/*!
+ * @class Function1
+ *
+ * @brief Handles the source term, the boundary conditions and the exact solution for scenario 1.
+ */
 class Function1 : public Function
 {
 public:
@@ -103,7 +130,11 @@ public:
   void buildExactSolution(double t);
 };
 
-// Classe fille scenario 2
+/*!
+ * @class Function2
+ *
+ * @brief Handles the source term, the boundary conditions and the exact solution for scenario 2.
+ */
 class Function2 : public Function
 {
 public:
@@ -120,7 +151,11 @@ public:
   void buildExactSolution(double t);
 };
 
-// Classe fille scenario 3
+/*!
+ * @class Function3
+ *
+ * @brief Handles the source term and the boundary conditions for scenario 3.
+ */
 class Function3 : public Function
 {
 public:

@@ -50,6 +50,11 @@ Function::Function(DataFile* DF):
 }
 
 
+/*!
+ * @param [in] DF A pointer to a DataFile object.
+ * @deprecated This method could be useful if we decided to construct an empty Function object.
+ * But we never use it in this code...
+ */
 void Function::Initialize(DataFile* DF)
 {
   _DF = DF;
@@ -70,6 +75,10 @@ void Function::Initialize(DataFile* DF)
 }
 
 
+/*!
+ * @details Resizes the initial condition, the source term and the exact solution. Sets
+ * the initial condition to 1 in the whole domain.
+ */
 void Function::Initialize()
 {
   // Logs de début
@@ -100,7 +109,11 @@ void Function::Initialize()
 #endif
 }
 
-
+/*!
+ * @details Builds the source term vector while taking into account the boundary conditions.
+ *
+ * @param t Current time (used when the source term is time dependent, i.e.in scenario 3).
+ */
 void Function::buildSourceTerm(double t)
 {
   double D(_DF->getDiffCoeff());
@@ -135,7 +148,9 @@ void Function::buildSourceTerm(double t)
     }
 }
 
-
+/*!
+ * @param fileName Name of the file in which to write the exact solution.
+ */
 void Function::saveCurrentExactSolution(std::string &fileName) const
 {
   std::ofstream outputFile(fileName, std::ios::out);
@@ -149,7 +164,11 @@ void Function::saveCurrentExactSolution(std::string &fileName) const
     }
 }
 
-
+/*!
+ * @param fileName Name of the file in which to write the source term.
+ *
+ * @deprecated This function is only here for debugging purposes. It's never used in the final code.
+ */
 void Function::saveSourceTerm(std::string& fileName) const
 {
   std::ofstream outputFile(fileName, std::ios::out);

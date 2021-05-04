@@ -1,7 +1,7 @@
 /*!
  * @file Vector.cpp
  *
- * @brief Define a Vector class.
+ * @brief Defines a Vector class.
  *
  * @authors Gabriel Suau, Remi Pegouret, Geoffrey Lebaud
  *
@@ -43,7 +43,14 @@ DVector::DVector(size_type count):
 {
 }
 
+
 // Additional methods
+/*!
+ * @param [in] vec Dvector that is added to this Dvector.
+ * @par Modifies
+ * this DVector
+ * @return the new value of this DVector.
+ */
 DVector DVector::add(const DVector& vec)
 {
   int N(vec.size());
@@ -55,6 +62,12 @@ DVector DVector::add(const DVector& vec)
 }
 
 
+/*!
+ * @param [in] vec Dvector that is subtracted to this Dvector.
+ * @par Modifies
+ * this DVector
+ * @return the new value of this DVector.
+ */
 DVector DVector::sub(const DVector& vec)
 {
   int N(vec.size());
@@ -66,6 +79,10 @@ DVector DVector::sub(const DVector& vec)
 }
 
 
+/*!
+ * @param [in] vec Dvector that is dotted to this Dvector.
+ * @return the value of the dot product.
+ */
 double DVector::dot(const DVector& vec)
 {
   int N(vec.size());
@@ -89,6 +106,15 @@ void DVector::print() const
 
 
 // Operators
+/*!
+ * @param [in] os the output stream in which to write the DVector.
+ * @param [in] v the Dvector that we want to write.
+ *
+ * @return a reference to os (so that we can chain the << operators).
+ *
+ * @deprecated This operator was only used for debugging purposes. It is not used 
+ * in the final version of the code.
+ */
 std::ostream& operator<< (std::ostream &os, const DVector& v)
 {
   int N(v.size());
@@ -100,6 +126,13 @@ std::ostream& operator<< (std::ostream &os, const DVector& v)
   return os;
 }
 
+
+/*!
+ * @param [in] u The first DVector operand.
+ * @param [in] v The second DVector operand.
+ *
+ * @return A DVector that is the sum of u and v.
+ */
 DVector operator+ (const DVector& u, const DVector& v)
 {
   if (u.size() == v.size())
@@ -119,6 +152,13 @@ DVector operator+ (const DVector& u, const DVector& v)
     }
 }
 
+
+/*!
+ * @param [in] u The first DVector operand.
+ * @param [in] v The second DVector operand.
+ *
+ * @return A DVector that is the difference of u and v.
+ */
 DVector operator- (const DVector& u, const DVector& v)
 {
   if (u.size() == v.size())
@@ -139,6 +179,12 @@ DVector operator- (const DVector& u, const DVector& v)
 }
 
 
+/*!
+ * @param [in] alpha The scalar to multiply the DVector with
+ * @param [in] v The DVector that is multiplied.
+ *
+ * @return A DVector equal to \f$ \alpha v \f$.
+ */
 DVector operator* (double alpha, const DVector& u)
 {
   DVector w;
@@ -151,6 +197,12 @@ DVector operator* (double alpha, const DVector& u)
 }
 
 
+/*!
+ * @param [in] alpha The scalar to multiply the DVector with
+ * @param [in] v The DVector that is multiplied.
+ *
+ * @return A DVector equal to \f$ \alpha v \f$.
+ */
 DVector operator* (const DVector& u, double alpha)
 {
   DVector w;

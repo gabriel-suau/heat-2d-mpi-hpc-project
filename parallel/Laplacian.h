@@ -35,27 +35,43 @@
 #include "Vector.h"
 #include <fstream>
 
+/*!
+ * @class Laplacian
+ *
+ * @brief Represents the discrete 2D Laplacian matrix
+ *
+ * @details A Laplacian object contains everything that is needed to create the discrete Laplacian matrix, 
+ * perform a matrix-vector product and solve a linear system involving this matrix with the 
+ * conjugate gradient method.
+ *
+ * @details This matrix is composed of tridiagonal blocks on its diagonal and diagonal blocks on its sub/super-diagonal.
+ * It is also symmetric, so that the matrix is fully defined by the values of three independent coefficients. We
+ * only need to keep these three coefficients in memory, and adapt the algorithms for the matvec products and
+ * the conjugate gradient.
+ */
 class Laplacian
 {
 private:
-  // Pointeurs vers les trucs importants
-  DataFile* _DF;
-  Function* _function;
+  DataFile* _DF; ///< Pointer to a DataFile object.
+  Function* _function; ///< Pointer to a Function object.
   
-  // Coefficients de la matrice du laplacien 2D
-  double _alpha, _beta, _gamma;
-  int _Nx, _Ny;
+  double _alpha, _beta, _gamma; ///< Coefficients of the matrix.
+  int _Nx, _Ny; ///< Number of unknowns in the x and y directions.
   
 public:
-  // Constructeurs
+  /*! @brief Constructs an empty Laplacian object. */
   Laplacian();
+  
+  /*! @brief Constructs a Laplacian object using a DataFile object and a Function object. */
   Laplacian(DataFile* DF, Function* function);
 
-  // Destructeur
+  /*! @brief Default destructor. */
   ~Laplacian() = default;
 
-  // Initialisation
+  /*! @brief Initializes an already constructed Laplacian object. */
   void Initialize();
+  
+  /*! @brief Initializes an empty constructed Laplacian object. */
   void Initialize(DataFile* DF, Function* function);
   
   // Getters
@@ -65,12 +81,11 @@ public:
   int getNx() const {return _Nx;}
   int getNy() const {return _Ny;};
   
-  // Produit matVec et GC
+  /*! @brief Performs a matrix vector product. */
   DVector matVecProd(const DVector& x);
-  DVector solveConjGrad(const DVector& b, const DVector& x0, double tolerance, int maxIterations, std::ofstream& resFile);
   
-  // Printer (pour debugger)
-  void print() const;
+  /*! @brief Solves the linear system Ax = b using the conjugate gradient method. */
+  DVector solveConjGrad(const DVector& b, const DVector& x0, double tolerance, int maxIterations, std::ofstream& resFile);
 };
 
 #endif // LAPLACIAN_H

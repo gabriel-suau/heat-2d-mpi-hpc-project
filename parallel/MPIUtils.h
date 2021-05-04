@@ -31,11 +31,30 @@
 #include <mpi.h>
 
 // Global MPI variables
-extern int MPI_Size, MPI_Rank, kBegin, kEnd, rowBegin, rowEnd, localSize, nbDomainRows;
-extern MPI_Status status;
+extern int MPI_Size; ///< Total number of of MPI procs.
+extern int MPI_Rank; ///< Rank of this MPI proc.
+extern int kBegin; ///< Index of the first unknown allocated to this MPI proc.
+extern int kEnd; ///< Index of the last unknown allocated to this MPI proc.
+extern int localSize; ///< Number of unknown allocated to this MPI proc.
+extern int rowBegin; ///< Index of the first row of the domain allocated to this MPI proc.
+extern int rowEnd; ///< Index of the last row of the domain allocated to this MPI proc.
+extern int nbDomainRows; ///< Number of rows of the domain allocated to this MPI proc.
+extern MPI_Status status; ///< Status of the communicator.
 
-// Répartit la charge avec un désiquilibre de charge inferieur ou egal a 1
-inline void charge(int N, int Np, int me, int& iBegin, int& iEnd)
+
+/*!
+ * @brief Computes the load allocated to an MPI proc.
+ *
+ * @details Compute the load allocated to an MPI proc knowing the total load, the number of MPI procs,
+ * and the rank of this MPI proc, with a maximum load imbalance of 1.
+ *
+ * @param[in] N Total load to allocate.
+ * @param[in] Np Number of MPI procs.
+ * @param[in] me Rank of this MPI proc.
+ * @param[out] iBegin Index of the first element allocated to this MPI proc.
+ * @param[out] iEnd Index of the last element allocated to this MPI proc.
+ */
+inline void charge(int N, int Np, int me, int* iBegin, int* iEnd)
 {
   // Division entière
   int chargeMinParProc(N/Np);
@@ -44,13 +63,13 @@ inline void charge(int N, int Np, int me, int& iBegin, int& iEnd)
 
   if (me < reste)
     {
-      iBegin = me * (chargeMinParProc + 1);
-      iEnd = iBegin + chargeMinParProc;
+      *iBegin = me * (chargeMinParProc + 1);
+      *iEnd = *iBegin + chargeMinParProc;
     }
   else
     {
-      iBegin = reste + me * chargeMinParProc;
-      iEnd = iBegin + chargeMinParProc - 1;
+      *iBegin = reste + me * chargeMinParProc;
+      *iEnd = *iBegin + chargeMinParProc - 1;
     }
 }
 

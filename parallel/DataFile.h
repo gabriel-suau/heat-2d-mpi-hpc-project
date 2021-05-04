@@ -35,51 +35,65 @@
 #include "MPIUtils.h"
 #include <string>
 
+/*!
+ * @class DataFile
+ *
+ * @brief Represents a data file.
+ *
+ * @details A DataFile object contains all the parameters of the simulation. The parameters are read
+ * in a formatted data file.
+*/
 class DataFile
 {
 private:
-  std::string _fileName;
+  std::string _fileName; ///< Name of the data file.
 
   // Solution saving
-  std::string _resultsDir;
-  bool _isSaveFinalResultOnly;
-  int _saveFrequency;
-  std::string _errorAndCPUTimeDir;
+  std::string _resultsDir; ///< Directory in which the results are written.
+  bool _isSaveFinalResultOnly; ///< Boolean to check wether only the final result must be saved.
+  int _saveFrequency; ///< Number of iterations between each saving of the solution (ignored if _isSaveFinalResultOnly is set to true).
+  std::string _errorAndCPUTimeDir; ///< Directory in which the CPU time and the error are written.
   
   // Scenario
-  int _scenario;
+  int _scenario; ///< Scenario that is simulated (1, 2 or 3).
   
   // Time parameters
-  std::string _timeScheme;
-  double _initialTime;
-  double _finalTime;
-  double _timeStep;
-  double _CFL;
+  std::string _timeScheme; ///< Time integrator (ExplicitEuler or ImplicitEuler).
+  double _initialTime; ///< Initial time.
+  double _finalTime; ///< Final time.
+  double _timeStep; ///< Time step.
+  double _CFL; ///< CFL number. It is used with the Explicit Euler scheme to ensure its stability.
 
   // Spatial parameters
-  double _xmin, _xmax, _ymin, _ymax;
-  double _Lx, _Ly;
-  int _Nx, _Ny;
-  double _dx, _dy;
+  double _xmin, _xmax, _ymin, _ymax; ///< Boundaries of the domain.
+  double _Lx, _Ly; ///< Lengths of the domain in the x and y directions.
+  int _Nx, _Ny; ///< Number of nodes (or unknowns) in the x and y directions.
+  double _dx, _dy; ///< Space steps in the x and y directions.
 
   // Linear solver parameters
-  int _maxIterations;
-  double _tolerance;
-  bool _isSaveResidual;
-  std::string _resFile;
+  int _maxIterations; ///< Maximum number of iterations for the Conjugate Gradient.
+  double _tolerance; ///< Tolerance for the Conjugate Gradient.
+  bool _isSaveResidual; ///< Boolean to check wether the residuals are to be saved or not.
+  std::string _resFile; ///< File in which the residuals are saved.
   
   // Diffusion coefficient
-  double _diffCoeff;
+  double _diffCoeff; ///< Diffusion coefficient
   
 public:
 
+  /*! @brief Empty constructor. */
   DataFile();
+  
+  /*! @brief Construct a DataFile object using the data file name. */
   DataFile(const std::string& fileName);
 
+  /*! @brief Default destructor. */
   ~DataFile() = default;
 
+  /*! @brief Initialize a DataFile object. */
   void Initialize(const std::string& fileName);
 
+  /*! @brief Reads the data file and sets the values of the parameters. */
   void readDataFile();
 
   // Getters
@@ -117,9 +131,11 @@ public:
   // Diffusion coefficient
   double getDiffCoeff() const {return _diffCoeff;};
 
+  /*! @brief Prints the values of the parameters. */
   void printData() const;
 
 protected:
+  /*! @brief Cleans a line so that it can be read. */
   std::string cleanLine(std::string &line);
 };
 

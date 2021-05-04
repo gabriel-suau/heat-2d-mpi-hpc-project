@@ -3,6 +3,8 @@
  *
  * @brief Main file of the program.
  *
+ * Initializes the MPI Environment, and calls the functions to solve the 2D heat equation.
+ *
  * @authors Gabriel Suau, Remi Pegouret, Geoffrey Lebaud
  *
  * @version 0.1.0
@@ -100,7 +102,7 @@ int main(int argc, char** argv)
   //---------------------Compute the load for each proc-------------//
   //----------------------------------------------------------------//
   // Compute the number of rows allocated to the proc (must be between 1 and Ny)
-  charge(DF->getNx(), MPI_Size, MPI_Rank, rowBegin, rowEnd);
+  charge(DF->getNx(), MPI_Size, MPI_Rank, &rowBegin, &rowEnd);
   nbDomainRows = rowEnd - rowBegin + 1;
   // Local size allocated to the proc (must be between Nx and Nx*Ny)
   kBegin = DF->getNx() * rowBegin;

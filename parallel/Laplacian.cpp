@@ -47,6 +47,13 @@ Laplacian::Laplacian(DataFile* DF, Function* function):
 }
 
 
+/*!
+ * @param [in] DF A pointer to a DataFile object.
+ * @param [in] function A pointer to a Function object.
+ *
+ * @deprecated This method could be useful if we decided to construct an empty Laplacian object.
+ * But we never use it in this code...
+ */
 void Laplacian::Initialize(DataFile* DF, Function* function)
 {
   _DF = DF;
@@ -81,7 +88,14 @@ void Laplacian::Initialize()
     }
 }
 
-
+/*!
+ * @details The discrete laplacian matrix is very sparse (block tridiagonal), so 
+ * only the strictly necessary operations are performed for this matrix-vector product.
+ *
+ * @param x DVector multiplied by the matrix.
+ *
+ * @return The result of the matvec product (a DVector object).
+ */
 DVector Laplacian::matVecProd(const DVector& x)
 {
   // Vecteur resultat
@@ -117,7 +131,7 @@ DVector Laplacian::matVecProd(const DVector& x)
       result[k] += _gamma * x[k];
 
       // Termes non diagonaux
-      if (j == 0)
+      if (j == 0) // Interface entre les procs MPI_Rank et MPI_Rank - 1.
         result[k] += _alpha * prev[i];
       else
         result[k] += _alpha * x[k-_Nx];
@@ -127,7 +141,7 @@ DVector Laplacian::matVecProd(const DVector& x)
       if (i != _Nx - 1)
         result[k] += _beta * x[k+1];
 
-      if (j == nbDomainRows - 1)
+      if (j == nbDomainRows - 1) // Interface entre les procs MPI_Rank et MPI_Rank + 1.
         result[k] += _alpha * next[i];
       else
         result[k] += _alpha * x[k+_Nx];
@@ -137,30 +151,38 @@ DVector Laplacian::matVecProd(const DVector& x)
 }
 
 
+/*!
+ * @param b Right hand side vector.
+ * @param x0 Initial guess for the iterative solver.
+ * @param tolerance Tolerance for the residuals of the conjugate gradient method.
+ * @param maxIterations Maximum number of iterations. When we reach this number of iterations, the linear solver stops and returns the current result, even if the result has not converged enough.
+ * @param resFile Name of the file in which to save the residuals L2 norm.
+ *
+ * @return The solution of the linear system (a DVector object).
+ */
 DVector Laplacian::solveConjGrad(const DVector& b, const DVector& x0, double tolerance, int maxIterations, std::ofstream& resFile)
 {
   // Variables intermédiaires
   DVector x(x0);
   DVector res(b - this->matVecProd(x0));
   DVector p(res);
-  // Compute initial global residual
-  double resDotRes(0.), partialResDotRes(res.dot(res));
-  MPI_Allreduce(&partialResDotRes, &resDotRes, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  // Compute the initial global residual
+  double resDotRes(res.dot(res));
+  MPI_Allreduce(MPI_IN_PLACE, &resDotRes, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
   double beta(sqrt(resDotRes));
   if (MPI_Rank == 0)
     resFile << beta << std::endl;
   
-  // Itérations de la méthode
+  // Iterations of the method
   int k(0);
   while ((beta > tolerance) && (k < maxIterations))
     {
-      // Produit matvec
+      // Matvec product
       DVector z(this->matVecProd(p));
       // Dot products
-      double resDotP(0.), zDotP(0.);
-      double partialResDotP(res.dot(p)), partialZDotP(z.dot(p));
-      MPI_Allreduce(&partialResDotP, &resDotP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-      MPI_Allreduce(&partialZDotP, &zDotP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+      double resDotP(res.dot(p)), zDotP(z.dot(p));
+      MPI_Allreduce(MPI_IN_PLACE, &resDotP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+      MPI_Allreduce(MPI_IN_PLACE, &zDotP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
       // Compute alpha
       double alpha(resDotP/zDotP);
       // Update the solution
@@ -168,8 +190,8 @@ DVector Laplacian::solveConjGrad(const DVector& b, const DVector& x0, double tol
       // Update the residual
       res = res - alpha * z;
       // Dot product
-      double resDotRes(0.), partialResDotRes(res.dot(res));
-      MPI_Allreduce(&partialResDotRes, &resDotRes, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+      double resDotRes(res.dot(res));
+      MPI_Allreduce(MPI_IN_PLACE, &resDotRes, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
       // Compute gamma
       double gamma(resDotRes/pow(beta,2));
       // Update p
