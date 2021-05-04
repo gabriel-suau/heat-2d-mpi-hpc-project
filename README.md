@@ -11,12 +11,12 @@ To compile the parallel code in release mode, assuming you are in the root direc
 ```shell
 cd parallel
 make release
-'''
+```
 
 This command will produce an executable called <code>main</code>. To execute the program with the parameters written in <code>parameters.txt</code>, you can now type
 ```shell
 mpirun ./main parameters
-'''
+```
 
 ## Credits
 All developpers are students at ENSEIRB-MATMECA, a french engineering school located in Talence.
