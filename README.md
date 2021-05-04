@@ -4,6 +4,7 @@ C++ parallel solver for the 2D heat equation, with Dirichlet boundary conditions
 
 The code was validated with test cases, and parallelized using the MPI library.
 
+
 ## Installation, compilation and execution
 
 You can get the sources from here by typing in your terminal :
@@ -31,6 +32,7 @@ or
 mpiexec -n 4 ./main parameters
 ```
 
+
 ## Outputs
 
 The outputs of the computation are written in the directory <code>resultsDir</code> specified in <code>parameters.txt</code>. Each MPI process writes its own results files. These files can directly be plotted using <code>gnuplot</code>. The results file names are in the form :
@@ -47,6 +49,20 @@ splot for [i=0:3] "solution_scenario_1_".i."_10.txt"
 ```
 
 
+## Documentation
+
+A documentation for the parallel code can be automaticly generated with [Doxygen](https://www.doxygen.nl/index.html). Just type :
+
+```shell
+doxygen doxygen.cfg
+```
+
+This command will produce a <code>doc/</code> directory containing an HTML documentation in the <code>html/</code> directory and a PDF documentation in the <code>latex</code> directory. To read the HTML documentation using <code>firefox</code>, just type the following command (assuming you are in the root directory)
+
+```shell
+firefox doc/html/index.html
+```
+
 ## Credits
 All developpers are students at ENSEIRB-MATMECA, a french engineering school located in Talence.
 
@@ -54,9 +70,11 @@ All developpers are students at ENSEIRB-MATMECA, a french engineering school loc
 * Rémi Pégouret
 * Gabriel Suau
 
+
 ## License
 
 This project is distributed under the [GNU-GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) license. A copy of the whole license is included in the repository.
+
 
 ## Check-list
 - [x] Make a working sequential version of the code (time integration : Explicit Euler, Implicit Euler)
