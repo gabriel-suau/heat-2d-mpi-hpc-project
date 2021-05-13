@@ -3,7 +3,7 @@
  *
  * @brief Main file of the program.
  *
- * Initializes the MPI Environment, and calls the functions to solve the 2D heat equation.
+ * @details Initializes the MPI Environment, and calls the functions to solve the 2D heat equation.
  *
  * @authors Gabriel Suau, Remi Pegouret, Geoffrey Lebaud
  *

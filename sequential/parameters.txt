@@ -12,7 +12,7 @@
 #       2 --> f = g = h = sin(x) + cos(y)
 #       3 --> f = exp(-(x-Lx/2)^2)*exp(-(y-Ly/2)^2)*cos(pi/2*t), g = 0, h = 1
 Scenario
-2
+1
 
 
 ##################################################
@@ -41,9 +41,9 @@ ymax
 # Nombre de noeuds de discrétisation pour chaque direction
 # On ne compte pas les noeuds de bords, donc Nx * Ny est le nb d'inconnues.
 Nx
-39
+3
 Ny
-39
+3
 
 
 ##################################################
@@ -54,18 +54,18 @@ Ny
 #        ExplicitEuler
 #        ImplicitEuler
 TimeScheme
-ImplicitEuler
+ExplicitEuler
 
 # Paramètres temporels.
 # CFL est utilisée pour adapter le pas de temps dans le cas de Euler explicite
 InitialTime
 0.
 FinalTime
-5e-1
+3
 TimeStep
-0.01
+1e-3
 CFL
-0.5
+0.8
 
 
 #############################################################################

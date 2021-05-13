@@ -136,7 +136,7 @@ void TimeScheme::solve()
       _currentTime += _timeStep;
       if (!_DF->isSaveFinalResultOnly() && n % _DF->getSaveFrequency() == 0)
         {
-          // Save numerical solution
+          // Save the numerical solution
 #if VERBOSITY>0
           if (MPI_Rank == 0)
             std::cout << "Saving solution at t = " << _currentTime << std::endl;
@@ -158,7 +158,7 @@ void TimeScheme::solve()
     }
 
 
-  // Save final solution
+  // Save the final solution
   if (_DF->isSaveFinalResultOnly())
     {
 #if VERBOSITY>0
@@ -169,7 +169,7 @@ void TimeScheme::solve()
       saveCurrentSolution(solFileName);
     }
   
-  // Save exact solution
+  // Save the exact solution
   if (_DF->getScenario() == 1 || _DF->getScenario() == 2)
     {
       _function->buildExactSolution(_currentTime);
@@ -194,7 +194,7 @@ void TimeScheme::solve()
         }
 #if VERBOSITY>0
       if (MPI_Rank == 0)
-        std::cout << "L2 error = " << error << " at t = " << _currentTime << " for a time step dt = " << _timeStep << std::endl;
+        std::cout << "L2 error = " << error << " at t = " << _currentTime << " for a Nx = " << _DF->getNx() << ", Ny = " << _DF->getNy() << std::endl;
 #endif
     }
   

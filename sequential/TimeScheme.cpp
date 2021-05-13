@@ -127,7 +127,7 @@ void TimeScheme::solve()
   if (_DF->getScenario() == 1 || _DF->getScenario() == 2)
     {
       double error(computeCurrentError());
-      std::cout << "L2 error = " << error << " at t = " << _currentTime << " for a time step dt = " << _timeStep << std::endl;
+      std::cout << "L2 error = " << error << " at t = " << _currentTime << " for Nx = " << _DF->getNx() << ", Ny = " << _DF->getNy() << std::endl;
     }
   // Logs de fin
   std::cout << termcolor::green << "SUCCESS::TIMESCHEME : Time loop completed successfully in " << duration << " seconds !" << std::endl;

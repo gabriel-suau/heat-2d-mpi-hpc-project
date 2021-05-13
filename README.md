@@ -23,13 +23,13 @@ make release
 This command will produce an executable called <code>main</code>. To execute the program with the parameters written in <code>parameters.txt</code>, you can use either <code>mpiexec</code> or <code>mpirun</code>. For example, to execute the program with 4 MPI processes (assuming your machine has the required number of cores), you can type :
 
 ```shell
-mpirun -n 4 ./main parameters
+mpirun -n 4 ./main parameters.txt
 ```
 
 or
 
 ```shell
-mpiexec -n 4 ./main parameters
+mpiexec -n 4 ./main parameters.txt
 ```
 
 
@@ -38,20 +38,20 @@ mpiexec -n 4 ./main parameters
 The outputs of the computation are written in the directory <code>resultsDir</code> specified in <code>parameters.txt</code>. Each MPI process writes its own results files. These files can directly be plotted using <code>gnuplot</code>. The results file names are in the form :
 
 ```shell
-solution_scenario_%SCENARIO%_%MPIRANK%_%ITERATION%.txt
+solution_scenario_%SCENARIO%_%MPIRANK%_%SAVEITERATION%.dat
 ```
 
 For example, let's say you simulated the scenario n°1 with 4 MPI processes. To visualise the whole solution at the time iteration n°10, you can type
 
 ```shell
 gnuplot
-splot for [i=0:3] "solution_scenario_1_".i."_10.txt"
+splot for [i=0:3] "solution_scenario_1_".i."_10.dat"
 ```
 
 
 ## Documentation
 
-A documentation for the parallel code can be automaticly generated with [Doxygen](https://www.doxygen.nl/index.html). Just type :
+A documentation for the parallel code can be automatically generated with [Doxygen](https://www.doxygen.nl/index.html). Just type :
 
 ```shell
 doxygen doxygen.cfg

@@ -12,7 +12,7 @@
 #       2 --> f = g = h = sin(x) + cos(y)
 #       3 --> f = exp(-(x-Lx/2)^2)*exp(-(y-Ly/2)^2)*cos(pi/2*t), g = 0, h = 1
 Scenario
-1
+2
 
 
 ##################################################
@@ -61,7 +61,7 @@ ImplicitEuler
 InitialTime
 0.
 FinalTime
-0.5
+2.0
 TimeStep
 1e-3
 CFL
@@ -74,11 +74,11 @@ CFL
 
 # Nombre d'itérations max
 MaxIterations
-50
+100
 
 # Tolerance pour le test d'arrêt
 Tolerance
-1e-7
+1e-18
 
 # Sauvegarde de la norme des résidus dans un fichier
 IsSaveResidual
@@ -104,7 +104,7 @@ SaveFinalResultOnly
 # Fréquence de sauvegarde de la solution numérique (en nb d'itérations)
 # Ignoré si SaveFinalResultOnly vaut 1
 SaveFrequency
-500
+50
 
 # Repertoire ou socker le temps CPU et l'erreur
 # Utile pour les tests de convergence et de scalabilité
