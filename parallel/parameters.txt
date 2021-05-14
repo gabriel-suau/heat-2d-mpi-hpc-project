@@ -41,9 +41,9 @@ ymax
 # Nombre de noeuds de discrétisation pour chaque direction
 # On ne compte pas les noeuds de bords, donc Nx * Ny est le nb d'inconnues.
 Nx
-80
+20
 Ny
-80
+20
 
 
 ##################################################
@@ -61,7 +61,7 @@ ImplicitEuler
 InitialTime
 0.
 FinalTime
-2.0
+0.5
 TimeStep
 1e-3
 CFL
@@ -74,11 +74,11 @@ CFL
 
 # Nombre d'itérations max
 MaxIterations
-100
+10
 
 # Tolerance pour le test d'arrêt
 Tolerance
-1e-18
+1e-16
 
 # Sauvegarde de la norme des résidus dans un fichier
 IsSaveResidual

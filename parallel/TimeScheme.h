@@ -94,7 +94,9 @@ public:
   void solve();
 
   /*! @brief Computes the current L2 error using the current solution and the current exact solution (if it exists). */
-  double computeCurrentError();
+  double computeCurrentL2Error();
+  /*! @brief Computes the current L1 error using the current solution and the current exact solution (if it exists). */
+  double computeCurrentL1Error();
 };
 
 /*!

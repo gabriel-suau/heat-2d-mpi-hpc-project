@@ -184,18 +184,20 @@ void TimeScheme::solve()
   // Calcul et sauvegarde de l'erreur pour les scenario 1 et 2
   if (_DF->getScenario() == 1 || _DF->getScenario() == 2)
     {
-      double error(computeCurrentError());
+      double L2error(computeCurrentL2Error());
+      double L1error(computeCurrentL1Error());
       if (MPI_Rank == 0)
         {
           std::string errorFileName(_DF->getErrorAndCPUTimeDir() + "/error.dat");
           std::ofstream errorFile(errorFileName, std::ios::app);
           errorFile.precision(10);
-          errorFile << _DF->getNx() << " " << _DF->getNy() << " " << _DF->getNx() * _DF->getNy() << " " << _DF->getDx() << " " << _DF->getDy() << " " <<_DF->getDx() * _DF->getDy() << " " << error << std::endl; 
+          errorFile << _DF->getNx() << " " << _DF->getNy() << " " << _DF->getNx() * _DF->getNy() << " " << _DF->getDx() << " " << _DF->getDy() << " " <<_DF->getDx() * _DF->getDy() << " " << L2error << " " << L1error << std::endl; 
         }
-#if VERBOSITY>0
       if (MPI_Rank == 0)
-        std::cout << "L2 error = " << error << " at t = " << _currentTime << " for a Nx = " << _DF->getNx() << ", Ny = " << _DF->getNy() << std::endl;
-#endif
+        {
+          std::cout << "Error L2 = " << L2error << " at t = " << _currentTime << " for Nx = " << _DF->getNx() << ", Ny = " << _DF->getNy() << std::endl << std::endl;
+          std::cout << "Error L1 = " << L1error << " at t = " << _currentTime << " for Nx = " << _DF->getNx() << ", Ny = " << _DF->getNy() << std::endl << std::endl;
+        }
     }
   
   // Logs de fin
@@ -208,13 +210,26 @@ void TimeScheme::solve()
 #endif
 }
 
-double TimeScheme::computeCurrentError()
+double TimeScheme::computeCurrentL2Error()
 {
-  double error(0.), localError;
+  double error(0.);
   DVector errorVec(_Sol - _function->getExactSolution());
-  localError = errorVec.dot(errorVec);
-  MPI_Allreduce(&localError, &error, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  error = errorVec.dot(errorVec);
+  MPI_Allreduce(MPI_IN_PLACE, &error, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
   error = sqrt(_DF->getDx() * _DF->getDy() * error);
+  return error;
+}
+
+double TimeScheme::computeCurrentL1Error()
+{
+  double error(0.);
+  DVector errorVec(_Sol - _function->getExactSolution());
+  for (int i(0) ; i < localSize ; ++i)
+    {
+      error += std::abs(errorVec[i]);
+    }
+  MPI_Allreduce(MPI_IN_PLACE, &error, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  error = _DF->getDx() * _DF->getDy() * error;
   return error;
 }
 
