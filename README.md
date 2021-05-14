@@ -7,7 +7,7 @@ The code was validated with test cases, and parallelized using the MPI library.
 
 ## Installation, compilation and execution
 
-You can get the sources from here by typing in your terminal :
+You can get the sources from github by typing in your terminal :
 
 ```shell
 git clone https://github.com/gabriel-suau/heat-2d-mpi-hpc-project.git mpi_heat_2D
@@ -48,6 +48,13 @@ gnuplot
 splot for [i=0:3] "solution_scenario_1_".i."_10.dat"
 ```
 
+Here is a more complex example. Let's say you simulated the scenario n°3 with 4 MPI processes and you have $300\times 4$ result files, each one corresponding to a part of the solution at a certain time $t$ computed by one proc. If you want to visualise an animated heatmap of this solution with gnuplot, you can type something like
+
+```shell
+gnuplot
+set palette defined (1 "blue", 2 "white", 3 "red")
+do for [i=1:300] {plot for [j=0:3] "solution_scenario_3_".j."_".i.".dat" with image; pause 0.02} 
+```
 
 ## Documentation
 
